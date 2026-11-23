@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Prompt Builder</title>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="templates.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <div id="app" class="page-shell">
+    <header class="page-header">
+      <div>
+        <p class="eyebrow">本地网页 · 不调用 AI 服务</p>
+        <h1>Prompt Builder</h1>
+        <p class="subtitle">选择工作流步骤，填写需求，预览并复制提示词。</p>
+      </div>
+      <div class="model-settings" aria-label="模型名称设置">
+        <label>分析模型<input id="model-analyst" autocomplete="off" maxlength="80"></label>
+        <label>计划模型<input id="model-planner" autocomplete="off" maxlength="80"></label>
+        <label>实施模型<input id="model-implementer" autocomplete="off" maxlength="80"></label>
+        <button id="reset-models" class="button button-quiet" type="button">恢复默认模型名</button>
+      </div>
+    </header>
+
+    <section class="doc-settings" aria-label="文档落盘规范设置">
+      <label class="doc-toggle-label" for="doc-rules-toggle">
+        <input id="doc-rules-toggle" type="checkbox">
+        附加文档落盘规范
+      </label>
+      <div class="doc-root-field">
+        <label class="field-label" for="docs-root">文档根目录（相对于目标项目根目录）</label>
+        <input id="docs-root" class="control" type="text" value="docs" autocomplete="off" spellcheck="false">
+        <p id="docs-root-notice" class="help-text" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <main class="workspace">
+      <section class="panel editor-panel" aria-labelledby="editor-heading">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">PROMPT BUILDER</p>
+            <h2 id="editor-heading">选择步骤并填写</h2>
+          </div>
+        </div>
+
+        <label class="field-label" for="step-select">提示词步骤</label>
+        <select id="step-select" class="control"></select>
+        <p id="step-description" class="help-text"></p>
+        <p id="role-hint" class="role-hint"></p>
+
+        <div id="step-fields" class="step-fields"></div>
+
+        <div class="context-block">
+          <label class="field-label" for="extra-context">补充上下文 <span class="optional">可选</span></label>
+          <textarea id="extra-context" class="control" rows="4" placeholder="有需要时追加上下文；为空时不追加。"></textarea>
+          <p class="help-text">内容会原样追加到生成文本末尾。</p>
+        </div>
+
+        <div class="editor-actions">
+          <button id="clear-step" class="button button-quiet" type="button">清空当前步骤</button>
+          <button id="write-agents" class="button button-secondary" type="button" hidden>选择 AGENTS.md 并回写</button>
+        </div>
+        <p id="storage-status" class="status-text" role="status" aria-live="polite"></p>
+      </section>
+
+      <section class="panel output-panel" aria-labelledby="preview-heading">
+        <div class="preview-heading-row">
+          <div>
+            <p class="eyebrow">LIVE PREVIEW</p>
+            <h2 id="preview-heading">生成结果</h2>
+          </div>
+          <button id="copy-prompt" class="button button-primary" type="button">复制提示词</button>
+        </div>
+        <div id="validation-message" class="validation-message" role="alert" hidden></div>
+        <textarea id="prompt-preview" class="preview" aria-label="提示词预览" spellcheck="false" readonly></textarea>
+        <p id="copy-status" class="status-text" role="status" aria-live="polite"></p>
+
+        <section class="recommendation" aria-labelledby="recommend-heading">
+          <div>
+            <p class="eyebrow">WORKFLOW GUIDE</p>
+            <h3 id="recommend-heading">推荐下一步</h3>
+          </div>
+          <label class="field-label" for="status-select">选择模型回复中的状态</label>
+          <select id="status-select" class="control"></select>
+          <div id="recommend-result" class="recommend-result" aria-live="polite">
+            选择当前步骤后，再选择模型实际返回的状态。
+          </div>
+          <button id="go-next" class="button button-secondary" type="button" hidden></button>
+        </section>
+      </section>
+    </main>
+
+    <dialog id="write-dialog" class="write-dialog">
+      <form method="dialog" class="dialog-content">
+        <h2>确认回写 AGENTS.md</h2>
+        <p id="write-summary" class="help-text"></p>
+        <div class="diff-grid">
+          <section><h3>原规则</h3><pre id="old-rules" class="diff-box"></pre></section>
+          <section><h3>新规则</h3><pre id="new-rules" class="diff-box"></pre></section>
+        </div>
+        <p class="warning-text">确认后只写入目标规则章节。建议先使用临时文件验证。</p>
+        <div class="dialog-actions">
+          <button id="cancel-write" class="button button-quiet" type="button">取消</button>
+          <button id="confirm-write" class="button button-primary" type="button">确认写入</button>
+        </div>
+      </form>
+    </dialog>
+
+    <footer class="page-footer">模板内置于本地页面；输入内容只保存在当前浏览器的本地存储中。</footer>
+  </div>
+</body>
+</html>

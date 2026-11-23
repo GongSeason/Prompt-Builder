@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Duo 提示词生成器自测</title>
+  <style>
+    body { font: 15px/1.55 "Segoe UI", sans-serif; max-width: 980px; margin: 28px auto; padding: 0 18px; color: #182230; }
+    .pass { color: #176b3a; } .fail { color: #a12720; }
+    li { margin: 7px 0; } pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #f3f6fa; padding: 12px; }
+  </style>
+  <script defer src="templates.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <h1>提示词生成器自测</h1>
+  <p>本页对生成逻辑、模板基准、状态推荐和规则回写纯函数执行断言。浏览器 API 能力另行显示，不以 API 存在性替代人工验收。</p>
+  <p id="summary" role="status">正在运行…</p>
+  <ol id="results"></ol>
+  <h2>本浏览器能力检测</h2>
+  <pre id="capabilities">检测中…</pre>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      "use strict";
+      const results = document.getElementById("results");
+      let passed = 0;
+      let failed = 0;
+      function assert(name, condition, detail) {
+        const li = document.createElement("li");
+        li.className = condition ? "pass" : "fail";
+        li.textContent = `${condition ? "PASS" : "FAIL"} — ${name}${detail ? `：${detail}` : ""}`;
+        results.append(li);
+        if (condition) passed += 1; else failed += 1;
+      }
+      function equal(name, actual, expected) {
+        assert(name, actual === expected, actual === expected ? "" : "输出与独立源文档基准不同");
+      }
+
+      const defaults = { analyst: "Luna", planner: "Opus", implementer: "Sonnet" };
+      const sourceP2 = `【Opus｜设计计划】基于 Luna 分析复核代码（不盲信），不改代码。
+输出：
+1. 目标与范围（含不做什么）；Bug 写明根因
+2. 修改文件/函数、新增文件（尽量无）、禁止修改项
+3. 实施步骤（每步含编译检查点）
+4. 边界情况与风险
+5. AC：Given/When/Then，可判定，覆盖正常/边界/异常/回归/数据完整性
+6. 验证方案、停止与回滚条件
+7. Developer Handoff
+会改变行为的问题列为“需用户确认”，其余采用合理默认并注明。
+结尾：PLAN APPROVED 或 NEED USER INPUT`;
+      const sourceP3 = `【Sonnet｜实施前复核】读取最新 Developer Handoff，先不改代码。
+用实际代码核对：文件/函数/API 是否存在、调用关系、依赖、范围、AC 可测性。
+- 无问题：简述步骤与 AC → PLAN STATUS: READY TO IMPLEMENT
+- 有设计级问题：逐项给出 原计划 / 代码证据 / 冲突与影响 / 需 Opus 决定什么 → PLAN STATUS: REVIEW REQUIRED
+不要自行修改方案。`;
+      const sourceP4 = `【Opus｜裁决】审查 Sonnet 最新报告并复核代码，不改代码。
+每项：ACCEPT / REJECT / PARTIAL + 证据 + 对计划的影响。
+若为 BLOCKED：说明已改代码 KEEP / ROLLBACK。
+只改受影响部分。输出 PLAN DECISION: ORIGINAL PLAN CONFIRMED 或 PLAN UPDATED + Updated Developer Handoff。`;
+      const sourceP5 = `【Sonnet｜实施】确认。按最新 Developer Handoff 逐步实施，每步编译。
+遇设计级冲突立即停止 → IMPLEMENTATION STATUS: BLOCKED（当前步骤 / 代码证据 / 已改内容 / 需决定事项）。
+完成后输出：
+- IMPLEMENTATION STATUS: COMPLETED / FAILED
+- 改动文件与函数
+- 每条 AC：PASS / FAIL / NOT TESTED + 证据
+- 构建命令与 warnings（对比基线）
+- 范围检查（越权文件 / 重构 / 接口或格式变化）
+- 未验证 AC 的手动测试步骤、遗留问题`;
+      const sourceAgents = `## 三模型协作规则
+- 角色：Luna 只读分析；Opus 设计/计划/AC/裁决，不改代码；Sonnet 复核计划后实施。
+- 同一 Session 用 /model 切换，不 /new；以最新 Developer Handoff 为准，不恢复被否决的旧方案。
+- 权限：编码细节（命名、局部写法、风格）由 Sonnet 决定；范围、架构、业务逻辑、接口、数据/配置格式、AC、PLC/设备安全由 Opus 决定。Sonnet 可用代码证据质疑，不得自行改方案。
+- 修改：最小改动；只改授权文件；不做无关重构、不升级依赖；Feature 扩展复用不重写，Bug 修根因不打补丁。
+- Git：实施前 git status，不覆盖已有改动；未授权不 commit/push/建删分支。
+- 验证：按步骤编译；warnings 与基线对比；未实际执行的 AC 只能标 NOT TESTED；无法自动验证的 AC 给出手动测试步骤。
+- 状态词：ANALYSIS COMPLETE / PLAN APPROVED / NEED USER INPUT / PLAN STATUS: READY TO IMPLEMENT / PLAN STATUS: REVIEW REQUIRED / PLAN DECISION: PLAN UPDATED / PLAN DECISION: ORIGINAL PLAN CONFIRMED / IMPLEMENTATION STATUS: COMPLETED / FAILED / BLOCKED`;
+      const filledP1 = `【Luna｜只读分析】任务类型：Bug
+需求：需求示例
+期望结果：期望示例
+场景/约束：待分析
+
+按 AGENTS.md 只读分析，不改代码、不出最终方案。
+输出：相关文件/函数、现有数据流、Bug 根因候选或 Feature 接入点、可复用逻辑、必须保护的逻辑、影响范围、待确认问题（标明事实/推测）。
+结尾：ANALYSIS COMPLETE`;
+      const filledP2b = `【Opus｜需求补充】
+1. 第一项
+2. 第三项
+只更新受影响部分，其余保持不变，不改代码。
+输出：变更对照（旧→新）+ Updated Developer Handoff。
+结尾：PLAN APPROVED`;
+
+      equal("AC02 P2 固定模板逐字一致", PromptApp.buildPrompt("P2", {}, defaults, ""), sourceP2);
+      equal("AC02 P3 固定模板逐字一致", PromptApp.buildPrompt("P3", {}, defaults, ""), sourceP3);
+      equal("AC02 P4 固定模板逐字一致", PromptApp.buildPrompt("P4", {}, defaults, ""), sourceP4);
+      equal("AC02 P5 固定模板逐字一致", PromptApp.buildPrompt("P5", {}, defaults, ""), sourceP5);
+      equal("AC02 AGENTS 规则块逐字一致", PromptApp.buildPrompt("AGENTS", {}, defaults, ""), sourceAgents);
+      equal("P1 字段替换及默认约束", PromptApp.buildPrompt("P1", { taskType: "Bug", requirement: "需求示例", expected: "期望示例", constraints: "" }, defaults, ""), filledP1);
+      const featureP1 = PromptApp.buildPrompt("P1", { taskType: "Feature", requirement: "需求", expected: "结果", constraints: "仅限本地使用" }, defaults, "");
+      assert("P1 Feature 和非空约束按原样生成", featureP1.includes("任务类型：Feature\n需求：需求\n期望结果：结果\n场景/约束：仅限本地使用"));
+      equal("P2b 去除空项并重新编号", PromptApp.buildPrompt("P2b", { items: ["第一项", "  ", "第三项"] }, defaults, ""), filledP2b);
+      equal("补充上下文原样追加", PromptApp.buildPrompt("P2", {}, defaults, "补充内容"), `${sourceP2}\n\n补充内容`);
+      assert("P1 缺少需求时校验失败", PromptApp.validateStep("P1", { requirement: "", expected: "有值" }).includes("需求"));
+      assert("P1 缺少期望结果时校验失败", PromptApp.validateStep("P1", { requirement: "有值", expected: "" }).includes("期望结果"));
+      assert("P2b 全空时校验失败", PromptApp.validateStep("P2b", { items: ["", "  "] }).length > 0);
+      const routeCases = [
+        ["P1", "ANALYSIS COMPLETE", "P2", "planner"],
+        ["P2", "PLAN APPROVED", "P3", "implementer"],
+        ["P2", "NEED USER INPUT", "P2b", "planner"],
+        ["P2b", "PLAN APPROVED", "P3", "implementer"],
+        ["P3", "PLAN STATUS: READY TO IMPLEMENT", "P5", "implementer"],
+        ["P3", "PLAN STATUS: REVIEW REQUIRED", "P4", "planner"],
+        ["P4", "PLAN DECISION: ORIGINAL PLAN CONFIRMED", "P3", "implementer"],
+        ["P4", "PLAN DECISION: PLAN UPDATED", "P3", "implementer"],
+        ["P5", "IMPLEMENTATION STATUS: BLOCKED", "P4", "planner"]
+      ];
+      routeCases.forEach(([step, status, next, model]) => {
+        const route = PromptApp.getRecommendation(step, status);
+        assert(`状态推荐 ${step} → ${next}`, Boolean(route && route.next === next && route.model === model));
+      });
+      assert("未知状态不推荐", PromptApp.getRecommendation("P3", "UNKNOWN") === null);
+      assert("P5 COMPLETED 结束流程", PromptApp.getRecommendation("P5", "IMPLEMENTATION STATUS: COMPLETED").terminal === "completed");
+      assert("P5 FAILED 是结束提示，不生成下一步", PromptApp.getRecommendation("P5", "IMPLEMENTATION STATUS: FAILED").terminal === "failed");
+      const append = PromptApp.replaceAgentsSection("# Existing\nBody\n", "## 三模型协作规则\nRule");
+      assert("回写纯函数在文件末尾追加", append.action === "append" && append.text.startsWith("# Existing\nBody\n\n## 三模型协作规则"));
+      const replaced = PromptApp.replaceAgentsSection("# Before\n\n## 三模型协作规则\nOld\n\n## After\nKeep", "## 三模型协作规则\nNew");
+      assert("替换规则节并保留前后章节", replaced.action === "replace" && replaced.text === "# Before\n\n## 三模型协作规则\nNew\n\n## After\nKeep");
+      const duplicate = PromptApp.replaceAgentsSection("## 三模型协作规则\nA\n## 三模型协作规则\nB", "New");
+      assert("重复目标标题拒绝修改", Boolean(duplicate.error) && duplicate.text === undefined);
+      const crlf = PromptApp.replaceAgentsSection("# Before\r\n\r\n## 三模型协作规则\r\nOld\r\n\r\n## After\r\nKeep", "## 三模型协作规则\nNew");
+      assert("CRLF 文件替换时保持 CRLF", crlf.text && crlf.text.includes("\r\n## After\r\nKeep") && !/(?<!\r)\n/.test(crlf.text));
+      const mixed = PromptApp.replaceAgentsSection("# A\r\nB\n", "New");
+      assert("混合换行拒绝修改", Boolean(mixed.error) && mixed.text === undefined);
+      const customModels = { analyst: "AnalystModelXYZ", planner: "PlannerModelXYZ", implementer: "ImplementerModelXYZ" };
+      const roleOutput = ["P1", "P2", "P2b", "P3", "P4", "P5", "AGENTS"].map((step) => PromptApp.buildPrompt(step, { taskType: "Bug", requirement: "x", expected: "y", items: ["z"] }, customModels, "")).join("\n");
+      const occurrences = (text, value) => text.split(value).length - 1;
+      assert("自定义模型名已替换且默认简称不残留", roleOutput.includes("【AnalystModelXYZ｜") && roleOutput.includes("【PlannerModelXYZ｜") && roleOutput.includes("【ImplementerModelXYZ｜") && !roleOutput.includes("【Luna｜") && !roleOutput.includes("【Opus｜") && !roleOutput.includes("【Sonnet｜"));
+      assert("模型占位符替换总数为 15", occurrences(roleOutput, "AnalystModelXYZ") === 3 && occurrences(roleOutput, "PlannerModelXYZ") === 6 && occurrences(roleOutput, "ImplementerModelXYZ") === 6);
+
+      const docOptions = { docRules: true, docsRoot: "docs", date: "2026-01-01" };
+      const expectedDocBlock = (stepLine, includeFallback) => [
+        "文档落盘（项目根目录下 docs/）：",
+        `- 写入：${stepLine}`,
+        "- 只写上列文档，不改其他文件；PLAN.md、ACCEPTANCE.md、REQUIREMENTS.md、handoff/HANDOFF_latest.md 为规范文件，按要求原位更新；带日期的文件已存在时追加 _2、_3，不覆盖；不确定内容标“待确认”。",
+        ...(includeFallback ? ["- 若当前为只读/Plan 模式无法写文件：在输出末尾列出“待落盘文件”（路径 + 完整内容），由 Sonnet 在 P3 开始时写入。"] : [])
+      ].join("\n");
+      const docSteps = [
+        ["P1", filledP1, "docs/analysis/2026-01-01_analysis.md（分析全文）", true, { taskType: "Bug", requirement: "需求示例", expected: "期望示例", constraints: "" }],
+        ["P2", sourceP2, "docs/PLAN.md（目标/范围/步骤/风险）、docs/ACCEPTANCE.md（AC 与验证方案）、docs/handoff/HANDOFF_latest.md（Developer Handoff）", true, {}],
+        ["P2b", filledP2b, "docs/REQUIREMENTS.md（追加本次需求）、docs/PLAN.md（追加变更对照与版本摘要）、docs/handoff/HANDOFF_latest.md（整份替换为最新版）；AC 受影响时同步更新 docs/ACCEPTANCE.md", true, { items: ["第一项", "", "第三项"] }],
+        ["P3", sourceP3, "先将上一阶段“待落盘文件”写入对应路径；复核结论写入 docs/review/2026-01-01_plan-review.md（写文档不算改代码）", false, {}],
+        ["P4", sourceP4, "docs/review/2026-01-01_decision.md；若为 PLAN UPDATED，同步更新 docs/PLAN.md 与 docs/handoff/HANDOFF_latest.md；AC 受影响时同步更新 docs/ACCEPTANCE.md", true, {}],
+        ["P5", sourceP5, "docs/handoff/2026-01-01_implementation-report.md；更新 docs/ACCEPTANCE.md 结果表（仅有证据的项可记 PASS）", false, {}]
+      ];
+      docSteps.forEach(([step, base, stepLine, fallback, form]) => {
+        const expected = `${base}\n\n${expectedDocBlock(stepLine, fallback)}`;
+        equal(`AC21 ${step} 落盘段精确拼接`, PromptApp.buildPrompt(step, form, defaults, "", docOptions), expected);
+      });
+      const contextAfterRules = PromptApp.buildPrompt("P1", { taskType: "Bug", requirement: "r", expected: "e", constraints: "" }, defaults, "extra", docOptions);
+      assert("AC21 补充上下文位于落盘段之后", contextAfterRules.endsWith("extra") && contextAfterRules.indexOf("extra") > contextAfterRules.indexOf("文档落盘"));
+
+      const docsRootCases = [
+        ["my-docs/", "my-docs", false], ["  ", "docs", true], ["a\\b\\", "a/b", false], ["./x", "x", false],
+        ["C:\\docs", "docs", true], ["/abs", "docs", true], ["../up", "docs", true], ["a/../b", "docs", true]
+      ];
+      docsRootCases.forEach(([input, expected, shouldNotify]) => {
+        const result = PromptApp.normalizeDocsRoot(input);
+        assert(`AC22 根目录 ${JSON.stringify(input)} → ${expected}`, result.value === expected && Boolean(result.notice) === shouldNotify);
+      });
+      assert("AC23 本地日期格式", PromptApp.getLocalDate(new Date(2026, 0, 1)) === "2026-01-01");
+      const currentDate = PromptApp.getLocalDate();
+      assert("AC23 未注入日期时使用本地日期", PromptApp.buildPrompt("P1", { taskType: "Bug", requirement: "r", expected: "e" }, defaults, "", { docRules: true, docsRoot: "docs" }).includes(`docs/analysis/${currentDate}_analysis.md`));
+      const agentsDocLine = "- 文档：阶段产物写入 docs/（各提示词已注明路径）；只读模式输出“待落盘文件”，由 Sonnet 写入；以 handoff/HANDOFF_latest.md 为最新基准。";
+      equal("AC24 AGENTS 开启时仅在末尾追加一行", PromptApp.buildPrompt("AGENTS", {}, defaults, "", docOptions), `${sourceAgents}\n${agentsDocLine}`);
+      equal("AC24 AGENTS 关闭时逐字一致", PromptApp.buildPrompt("AGENTS", {}, defaults, "", { docRules: false, docsRoot: "docs", date: "2026-01-01" }), sourceAgents);
+
+      const summary = document.getElementById("summary");
+      summary.textContent = `${passed} 项通过，${failed} 项失败。`;
+      summary.className = failed ? "fail" : "pass";
+      const storageWorks = (function () {
+        try { localStorage.setItem("duo-selftest", "1"); localStorage.removeItem("duo-selftest"); return true; }
+        catch (_) { return false; }
+      })();
+      document.getElementById("capabilities").textContent = [
+        `isSecureContext: ${globalThis.isSecureContext}`,
+        `localStorage 可写: ${storageWorks}`,
+        `Clipboard API: ${Boolean(navigator.clipboard && navigator.clipboard.writeText)}`,
+        `showOpenFilePicker: ${typeof globalThis.showOpenFilePicker === "function"}`,
+        `execCommand: ${typeof document.execCommand === "function"}`
+      ].join("\n");
+    });
+  </script>
+</body>
+</html>
