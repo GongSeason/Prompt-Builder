@@ -1,4 +1,4 @@
-# Updated Developer Handoff — V1.4.1（完整版本，唯一执行依据）
+# Updated Developer Handoff — V1.4.2（完整版本，唯一执行依据）
 
 ## Final Objective / Root Cause
 
@@ -63,7 +63,7 @@ P3、P5 不输出公共部分的最后一行只读兜底。
 ## Required Changes
 
 1. 提示词拼接顺序：源模板 → `\n\n` → DOC_RULES → `\n\n` → 补充上下文。`docRules` 关闭或未传 `options` 时不追加任何 DOC_RULES，行为与 V1.2 完全一致。
-2. AGENTS 规则块开启时只追加指定的一行；关闭时保持源文逐字一致。回写时预览和写入内容一致，原有唯一章节、确认、权限失败保护和降级规则不变。
+2. AGENTS 规则块开启时只追加指定的一行（与源规则块以单个 `\n` 连接，第 1 条的 `\n\n` 不适用于 AGENTS）；关闭时保持源文逐字一致。回写时预览和写入内容一致，原有唯一章节、确认、权限失败保护和降级规则不变。
 3. 页面状态新增 `docRules`（默认 `true`）和 `docsRoot`（默认 `docs`），沿用原 STORAGE_KEY；旧存储缺字段时使用默认值。两个控件和用户原始输入都保存。
 4. `normalizeDocsRoot` 顺序：
    1. 去首尾空格；
@@ -131,7 +131,7 @@ P3、P5 不输出公共部分的最后一行只读兜底。
 
 ### AC25：回归
 
-原有 31 条断言保持不变；Edge 和 Chrome 自测页中原有及新增断言全部 PASS。AC01–AC20 定义不变。
+原有 31 条断言保持不变；Edge 和 Chrome 自测页中原有及新增断言全部 PASS。AC02 按本 Handoff 修订；AC01、AC03–AC20 定义不变。
 
 ## Verification Plan
 
@@ -149,3 +149,10 @@ P3、P5 不输出公共部分的最后一行只读兜底。
 - 需要修改本 Handoff 未授权的文件。
 
 触发停止条件时停止并报告，不自行扩大范围。
+
+## 当前进度（V1.4.2）
+
+- 第 1–3 步已完成；`app/` 下 5 个文件的 V1.4.1 改动 KEEP，不回滚。
+- 会话中此前 Edge、Chrome 自测各 50/50；P5 必须重新运行确认。
+- 剩余 P5 步骤：更新 README、PLAN、ACCEPTANCE、REQUIREMENTS；重新运行 Edge/Chrome 自测；做手动验收；检查 `doc/` 哈希；新增带日期实施报告。
+- AC22 的刷新记忆和 AC24 的临时文件实际回写需人工操作；未执行时标为 NOT TESTED，并给出手动步骤。
