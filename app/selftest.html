@@ -37,7 +37,7 @@
       }
 
       const defaults = { analyst: "Luna", planner: "Opus", implementer: "Sonnet" };
-      const sourceP2 = `【Opus｜设计计划】基于 Luna 分析复核代码（不盲信），不改代码。
+      const sourceP2 = `【Opus｜设计计划】基于 Luna 整理的代码上下文复核代码（不盲信），由你判定 Bug 根因或 Feature 接入点，不改代码。
 输出：
 1. 目标与范围（含不做什么）；Bug 写明根因
 2. 修改文件/函数、新增文件（尽量无）、禁止修改项
@@ -67,21 +67,33 @@
 - 范围检查（越权文件 / 重构 / 接口或格式变化）
 - 未验证 AC 的手动测试步骤、遗留问题`;
       const sourceAgents = `## 三模型协作规则
-- 角色：Luna 只读分析；Opus 设计/计划/AC/裁决，不改代码；Sonnet 复核计划后实施。
+- 角色：Luna 只读整理代码上下文，不判断根因；Opus 根因分析/设计/计划/AC/裁决，不改代码；Sonnet 复核计划后实施。
+- 实施后仍有 Bug 或需追加 Feature：由 Opus 用 P6 基于最新 Handoff 和代码直接处理，不回到 P1。
 - 同一 Session 用 /model 切换，不 /new；以最新 Developer Handoff 为准，不恢复被否决的旧方案。
 - 权限：编码细节（命名、局部写法、风格）由 Sonnet 决定；范围、架构、业务逻辑、接口、数据/配置格式、AC、PLC/设备安全由 Opus 决定。Sonnet 可用代码证据质疑，不得自行改方案。
 - 修改：最小改动；只改授权文件；不做无关重构、不升级依赖；Feature 扩展复用不重写，Bug 修根因不打补丁。
 - Git：实施前 git status，不覆盖已有改动；未授权不 commit/push/建删分支。
 - 验证：按步骤编译；warnings 与基线对比；未实际执行的 AC 只能标 NOT TESTED；无法自动验证的 AC 给出手动测试步骤。
 - 状态词：ANALYSIS COMPLETE / PLAN APPROVED / NEED USER INPUT / PLAN STATUS: READY TO IMPLEMENT / PLAN STATUS: REVIEW REQUIRED / PLAN DECISION: PLAN UPDATED / PLAN DECISION: ORIGINAL PLAN CONFIRMED / IMPLEMENTATION STATUS: COMPLETED / FAILED / BLOCKED`;
-      const filledP1 = `【Luna｜只读分析】任务类型：Bug
+      const filledP1 = `【Luna｜代码上下文整理】任务类型：Bug
 需求：需求示例
 期望结果：期望示例
 场景/约束：待分析
 
-按 AGENTS.md 只读分析，不改代码、不出最终方案。
-输出：相关文件/函数、现有数据流、Bug 根因候选或 Feature 接入点、可复用逻辑、必须保护的逻辑、影响范围、待确认问题（标明事实/推测）。
+按 AGENTS.md 只读，不改代码；只整理事实，不判断根因、不提方案，供 Opus 分析。
+输出：项目用途与整体结构、与需求相关的文件/函数/调用链、现有数据流与配置、相关测试、可能受影响的模块；每项注明文件路径（尽量含行号），区分已核实事实与未读/不确定处。
 结尾：ANALYSIS COMPLETE`;
+      const sourceP6 = `【Opus｜实施后修正】类型：实施后 Bug
+问题/新需求：现象示例
+期望结果：待确认
+
+基于最新 Developer Handoff、实施报告和当前代码（含 Sonnet 本轮改动）直接定位，不回到 Luna 重做分析，不改代码。
+输出：
+1. Bug：根因（文件/函数/行号证据），是否由本轮改动引入；Feature：接入点及对现有方案的影响
+2. 变更对照（旧→新），新增或修订的 AC（含回归）
+3. Updated Developer Handoff（只改受影响部分）
+缺少上下文时列出需查看的具体文件，不猜测。
+结尾：PLAN APPROVED 或 NEED USER INPUT`;
       const filledP2b = `【Opus｜需求补充】
 1. 第一项
 2. 第三项
@@ -94,7 +106,15 @@
       equal("AC02 P4 固定模板逐字一致", PromptApp.buildPrompt("P4", {}, defaults, ""), sourceP4);
       equal("AC02 P5 固定模板逐字一致", PromptApp.buildPrompt("P5", {}, defaults, ""), sourceP5);
       equal("AC02 AGENTS 规则块逐字一致", PromptApp.buildPrompt("AGENTS", {}, defaults, ""), sourceAgents);
+      equal("AC27 P1 代码上下文整理模板逐字一致", PromptApp.buildPrompt("P1", { taskType: "Bug", requirement: "需求示例", expected: "期望示例", constraints: "" }, defaults, ""), filledP1);
+      assert("AC27 P1 不要求根因候选或接入点", !filledP1.includes("根因候选") && !filledP1.includes("接入点") && filledP1.includes("不判断根因、不提方案"));
       equal("P1 字段替换及默认约束", PromptApp.buildPrompt("P1", { taskType: "Bug", requirement: "需求示例", expected: "期望示例", constraints: "" }, defaults, ""), filledP1);
+      const p6Form = { issueType: "实施后 Bug", issue: "现象示例", expected: "" };
+      equal("AC28 P6 定稿与待确认回退", PromptApp.buildPrompt("P6", p6Form, defaults, ""), sourceP6);
+      const p6Fields = PromptApp.getP6FieldValues(p6Form);
+      assert("AC28 P6 表单字段映射", Object.keys(p6Fields).join(",") === "issue-type,issue,issue-expected" && p6Fields["issue-type"] === "实施后 Bug" && p6Fields.issue === "现象示例" && p6Fields["issue-expected"] === "");
+      assert("AC28 P6 问题必填校验", PromptApp.validateStep("P6", { issue: "  " }).includes("问题/新需求") && PromptApp.validateStep("P6", { issue: "problem" }).length === 0);
+      assert("AC28 P6 非法类型生成回退默认", PromptApp.buildPrompt("P6", { ...p6Form, issueType: "invalid" }, defaults, "") === sourceP6);
       const featureP1 = PromptApp.buildPrompt("P1", { taskType: "Feature", requirement: "需求", expected: "结果", constraints: "仅限本地使用" }, defaults, "");
       assert("P1 Feature 和非空约束按原样生成", featureP1.includes("任务类型：Feature\n需求：需求\n期望结果：结果\n场景/约束：仅限本地使用"));
       [
@@ -124,7 +144,9 @@
         ["P3", "PLAN STATUS: REVIEW REQUIRED", "P4", "planner"],
         ["P4", "PLAN DECISION: ORIGINAL PLAN CONFIRMED", "P3", "implementer"],
         ["P4", "PLAN DECISION: PLAN UPDATED", "P3", "implementer"],
-        ["P5", "IMPLEMENTATION STATUS: BLOCKED", "P4", "planner"]
+        ["P5", "IMPLEMENTATION STATUS: BLOCKED", "P4", "planner"],
+        ["P6", "PLAN APPROVED", "P3", "implementer"],
+        ["P6", "NEED USER INPUT", "P2b", "planner"]
       ];
       routeCases.forEach(([step, status, next, model]) => {
         const route = PromptApp.getRecommendation(step, status);
@@ -133,6 +155,10 @@
       assert("未知状态不推荐", PromptApp.getRecommendation("P3", "UNKNOWN") === null);
       assert("P5 COMPLETED 结束流程", PromptApp.getRecommendation("P5", "IMPLEMENTATION STATUS: COMPLETED").terminal === "completed");
       assert("P5 FAILED 是结束提示，不生成下一步", PromptApp.getRecommendation("P5", "IMPLEMENTATION STATUS: FAILED").terminal === "failed");
+      ["IMPLEMENTATION STATUS: COMPLETED", "IMPLEMENTATION STATUS: FAILED"].forEach((status) => {
+        const route = PromptApp.getRecommendation("P5", status);
+        assert(`AC29 ${status} 保留终态并提供 P6`, route.terminal === (status.endsWith("COMPLETED") ? "completed" : "failed") && route.next === "P6" && route.model === "planner");
+      });
       const append = PromptApp.replaceAgentsSection("# Existing\nBody\n", "## 三模型协作规则\nRule");
       assert("回写纯函数在文件末尾追加", append.action === "append" && append.text.startsWith("# Existing\nBody\n\n## 三模型协作规则"));
       const replaced = PromptApp.replaceAgentsSection("# Before\n\n## 三模型协作规则\nOld\n\n## After\nKeep", "## 三模型协作规则\nNew");
@@ -144,10 +170,10 @@
       const mixed = PromptApp.replaceAgentsSection("# A\r\nB\n", "New");
       assert("混合换行拒绝修改", Boolean(mixed.error) && mixed.text === undefined);
       const customModels = { analyst: "AnalystModelXYZ", planner: "PlannerModelXYZ", implementer: "ImplementerModelXYZ" };
-      const roleOutput = ["P1", "P2", "P2b", "P3", "P4", "P5", "AGENTS"].map((step) => PromptApp.buildPrompt(step, { taskType: "Bug", requirement: "x", expected: "y", items: ["z"] }, customModels, "")).join("\n");
+      const roleOutput = ["P1", "P2", "P2b", "P3", "P4", "P5", "P6", "AGENTS"].map((step) => PromptApp.buildPrompt(step, step === "P6" ? { issueType: "实施后 Bug", issue: "x", expected: "y" } : { taskType: "Bug", requirement: "x", expected: "y", items: ["z"] }, customModels, "")).join("\n");
       const occurrences = (text, value) => text.split(value).length - 1;
       assert("自定义模型名已替换且默认简称不残留", roleOutput.includes("【AnalystModelXYZ｜") && roleOutput.includes("【PlannerModelXYZ｜") && roleOutput.includes("【ImplementerModelXYZ｜") && !roleOutput.includes("【Luna｜") && !roleOutput.includes("【Opus｜") && !roleOutput.includes("【Sonnet｜"));
-      assert("模型占位符替换总数为 15", occurrences(roleOutput, "AnalystModelXYZ") === 3 && occurrences(roleOutput, "PlannerModelXYZ") === 6 && occurrences(roleOutput, "ImplementerModelXYZ") === 6);
+      assert("模型占位符替换总数为 20", occurrences(roleOutput, "AnalystModelXYZ") === 4 && occurrences(roleOutput, "PlannerModelXYZ") === 9 && occurrences(roleOutput, "ImplementerModelXYZ") === 7);
 
       const docOptions = { docRules: true, docsRoot: "docs", date: "2026-01-01" };
       const expectedDocBlock = (stepLine, includeFallback) => [
@@ -162,7 +188,8 @@
         ["P2b", filledP2b, "docs/REQUIREMENTS.md（追加本次需求）、docs/PLAN.md（追加变更对照与版本摘要）、docs/handoff/HANDOFF_latest.md（整份替换为最新版）；AC 受影响时同步更新 docs/ACCEPTANCE.md", true, { items: ["第一项", "", "第三项"] }],
         ["P3", sourceP3, "先将上一阶段“待落盘文件”写入对应路径；复核结论写入 docs/review/2026-01-01_plan-review.md（写文档不算改代码）", false, {}],
         ["P4", sourceP4, "docs/review/2026-01-01_decision.md；若为 PLAN UPDATED，同步更新 docs/PLAN.md 与 docs/handoff/HANDOFF_latest.md；AC 受影响时同步更新 docs/ACCEPTANCE.md", true, {}],
-        ["P5", sourceP5, "docs/handoff/2026-01-01_implementation-report.md；更新 docs/ACCEPTANCE.md 结果表（仅有证据的项可记 PASS）", false, {}]
+        ["P5", sourceP5, "docs/handoff/2026-01-01_implementation-report.md；更新 docs/ACCEPTANCE.md 结果表（仅有证据的项可记 PASS）", false, {}],
+        ["P6", sourceP6, "docs/review/2026-01-01_post-impl.md（根因/接入点定位）、docs/REQUIREMENTS.md（追加本次问题/需求）、docs/PLAN.md（追加变更对照与版本摘要）、docs/handoff/HANDOFF_latest.md（整份替换为最新版）；AC 受影响时同步更新 docs/ACCEPTANCE.md", true, { issueType: "实施后 Bug", issue: "现象示例", expected: "" }]
       ];
       docSteps.forEach(([step, base, stepLine, fallback, form]) => {
         const expected = `${base}\n\n${expectedDocBlock(stepLine, fallback)}`;
@@ -185,6 +212,8 @@
       const agentsDocLine = "- 文档：阶段产物写入 docs/（各提示词已注明路径）；只读模式输出“待落盘文件”，由 Sonnet 写入；以 handoff/HANDOFF_latest.md 为最新基准。";
       equal("AC24 AGENTS 开启时仅在末尾追加一行", PromptApp.buildPrompt("AGENTS", {}, defaults, "", docOptions), `${sourceAgents}\n${agentsDocLine}`);
       equal("AC24 AGENTS 关闭时逐字一致", PromptApp.buildPrompt("AGENTS", {}, defaults, "", { docRules: false, docsRoot: "docs", date: "2026-01-01" }), sourceAgents);
+      assert("AC30 AGENTS 新角色与 P6 规则符合定稿", sourceAgents.includes("只读整理代码上下文，不判断根因") && sourceAgents.includes("由 Opus 用 P6 基于最新 Handoff 和代码直接处理，不回到 P1"));
+      assert("AC30 P6 落盘包含只读兜底行", PromptApp.buildPrompt("P6", p6Form, defaults, "", docOptions).includes("docs/review/2026-01-01_post-impl.md") && PromptApp.buildPrompt("P6", p6Form, defaults, "", docOptions).includes("只读/Plan 模式无法写文件"));
 
       const summary = document.getElementById("summary");
       summary.textContent = `${passed} 项通过，${failed} 项失败。`;

@@ -11,7 +11,8 @@
 ### 当前默认值和关键规则
 
 - 模型显示名：`Luna` / `Opus` / `Sonnet`；用户可更改并记忆。
-- 精简模板代码块的 15 处角色称呼对应三个可编辑模型名；模板其他正文不做全局替换。
+- 角色占位符对应三个可编辑模型名；模板其他正文不做全局替换。V1.2 为 15 处；V1.5 起 P1/P2/AGENTS/P6 按 Handoff 定稿，共 20 处（Luna 4 / Opus 9 / Sonnet 7）。
+- 职责（V1.5）：P1 Luna 只整理代码事实，不判根因；P2 Opus 判定根因/接入点；实施后问题由 Opus 在 P6 直接处理，不回到 P1。
 - 下一步状态由用户手动选择。
 - 回写仅针对唯一的 `## 三模型协作规则` 章节；标题重复或格式无法安全处理时拒绝写入。
 - 本地项目记录位于 `PRJ_00_AgentPrompt/docs/`，本轮只新增计划清单内文件，不修改 `app/`、`doc/`。
@@ -103,9 +104,61 @@
 | P5 文档 | 更新 README、PLAN、ACCEPTANCE、REQUIREMENTS | 仅 `ACCEPTANCE.md` 结果表 + 带日期实施报告 |
 | 过时步骤 | P3 开始时写入 2026-11-23 三份裁决 | 删除（文件已存在） |
 
+V1.4.5 已由 P5 实施（`handoff/2026-11-24_implementation-report_2.md`）：Edge selftest 52/52；Chrome 和 AC26b 手动验收未执行。
+
+### V1.5 — P1 职责收窄 + 新增 P6 实施后修正
+
+用户需求见 `REQUIREMENTS.md` V1.5。
+
+变更对照（旧 → 新）：
+
+| 项目 | 旧（V1.4.5） | 新（V1.5） |
+|---|---|---|
+| P1 标题/职责 | “只读分析”；输出含“Bug 根因候选或 Feature 接入点” | “代码上下文整理”；只整理事实，明确“不判断根因、不提方案，供 Opus 分析” |
+| P2 首句 | 基于 Luna 分析复核代码 | 基于 Luna 整理的代码上下文复核代码，由 Opus 判定根因/接入点；其余正文不变 |
+| 实施后仍有 Bug / 追加 Feature | 无专门环节；只能回 P1 重来，或 P5 FAILED 后仅提示停止 | 新增 P6（Opus｜实施后修正）：基于 Handoff、实施报告和当前代码直接定位，输出 Updated Handoff → P3 |
+| 状态推荐 | P5 COMPLETED/FAILED 为终止，无下一步 | 仍为终止状态，但提供“前往 P6”按钮；P6：PLAN APPROVED → P3，NEED USER INPUT → P2b |
+| AGENTS 规则块 | 角色行按旧职责 | 角色行改为新职责；新增一行 P6 规则 |
+| 角色占位符 | 15 处 | 20 处（Luna 4 / Opus 9 / Sonnet 7） |
+| 模板基准（AC02） | P1/P2/AGENTS 对照 `doc/` 源文 | P1/P2/AGENTS/P6 对照 Handoff V1.5 定稿；P2b/P3/P4/P5 仍对照 `doc/`；`doc/` 不改 |
+| 文档落盘 | 6 步 | 增加 P6 写入行；其余步骤不变 |
+| 不变 | — | P2b/P3/P4/P5 正文、默认模型名、P1 表单与 V1.4.5 回填修复、localStorage 已有字段、回写安全规则 |
+
+设计默认值（可由用户否决）：P5 FAILED 也提供前往 P6（原“不生成下一步”）；P6 表单为“类型（实施后 Bug / 追加 Feature）+ 问题/新需求（必填）+ 期望结果（可选，空为‘待确认’）”。
+
+### V1.5.1 — P5 BLOCKED 裁决（AC20 适用范围 + 文档范围）
+
+依据 `handoff/2026-11-24_implementation-report_3.md`，裁决见 `review/2026-11-24_decision_3.md`：
+
+| 项目 | 旧（V1.5） | 新（V1.5.1） |
+|---|---|---|
+| AC20 | 要求整个 `app/`、`doc/` 哈希不变 | 只修改文档的轮次沿用原定义；有代码变更的轮次只核验 Handoff 未授权修改的文件（V1.5：`doc/**`、`app/index.html`、`app/style.css`） |
+| `PROJECT_CONTEXT.md`、`README.md` 更新 | V1.5 完成条件 | 移为遗留项，待用户授权；不阻塞 COMPLETED |
+| 代码 | — | KEEP |
+
+### V1.5.2 — 规范文件同步
+
+依据 `review/2026-11-24_decision_4.md`：decision_3 判定 PLAN UPDATED，但没有同步 PLAN 与 Handoff；ACCEPTANCE 摘要中 AC20 与结果表矛盾。本版本只同步文档，代码和 AC 定义不变。新增非阻塞遗留：selftest 断言名“P5 FAILED 是结束提示，不生成下一步”已过时（判定仍正确）。
+
+### V1.5.3 — P3 回顾性复核裁决
+
+依据 `review/2026-11-24_plan-review_5.md`（REVIEW REQUIRED），裁决见 `review/2026-11-24_decision_5.md`，两项均 ACCEPT：
+
+| 项目 | 旧（V1.5.2） | 新（V1.5.3） |
+|---|---|---|
+| Handoff 中 PROJECT_CONTEXT/README | Scope、Files to Modify、步骤 6 仍列为 P5 待改，与补充节矛盾 | 三处标注“已完成，不属于后续待实施范围” |
+| 已完成 Handoff 再跑 P3 | 未定义；按模板会输出 READY TO IMPLEMENT | 不输出 READY；V1.5 实施周期关闭；新代码工作须经 P6 或 P2b 生成新 Handoff |
+| 代码 / AC | — | 不变（KEEP；ACCEPTANCE 不改） |
+
 ## 当前实施步骤
 
-V1.4.1 文档落盘规范代码已实现；P5 自测 Edge/Chrome 各 50 项通过，但 AC22 刷新记忆、AC24 实际临时文件回写仍待人工验收。V1.4.5 的 P1 任务类型回填修复尚未实施；下一步按最新 Handoff 执行 P3 复核，再由 P5 只修改 `app/app.js`、`app/selftest.html`，运行 AC26a 自测和 AC26b 手动验证。
+V1.5 代码已实施并保留（KEEP），记为 COMPLETED（含手动验收遗留）；V1.5.3 起实施周期关闭，不再走 P3/P5。2026-11-24 复跑 Edge、Chrome selftest 均为 65/65；未授权修改文件的哈希与基线一致。
+
+下一步：
+1. 用户在 Edge/Chrome 手动验收 AC10、AC28(c)、AC29，以及遗留的 AC01、AC03–AC09、AC11–AC13、AC22、AC24、AC26b。
+2. ~~用户授权后更新 `docs/PROJECT_CONTEXT.md`、`docs/README.md` 的受影响行~~：已于 2026-11-24 经用户授权完成（角色、流程、P6、模板基准、验证状态、恢复步骤）。
+3. AC17 在独立新会话验证。
+4. 遗留：selftest 过时断言名，等下次授权改动 selftest 时只改名称。
 
 
 ## 停止条件

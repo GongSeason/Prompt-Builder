@@ -3,26 +3,29 @@
 ## 目录说明
 
 - `doc/`：原始提示词、工作流及规则资料，只读，不在本轮修改。
-- `app/`：本地提示词生成网页。本轮保持已有 5 个文件不变。
+- `app/`：本地提示词生成网页（5 个文件）。只在 Handoff 授权时修改；V1.5 修改了 `templates.js`、`app.js`、`selftest.html`。
 - `docs/`：项目需求、方案、验收结果和交接记录；后续以这里的最新有效文档为准。
 
 ## 当前阶段
 
-网页实现和本地项目记录文件已完成。自动自测已在 Edge、Chrome 通过；仍等待 Edge、Chrome 的手动验收。详细逐项结果见 `ACCEPTANCE.md` 和 `handoff/2026-11-23_implementation-report.md`。
+当前方案为 V1.5（P1 只整理代码事实；新增 P6 实施后修正），最新裁决为 V1.5.2。代码已实施，结果为 COMPLETED（含手动验收遗留）。自动自测在 Edge、Chrome 均为 65/65；仍等待手动验收。详细结果见 `ACCEPTANCE.md`、`handoff/2026-11-24_implementation-report_3.md` 和 `review/2026-11-24_decision_4.md`。
 
 ## 下一步
 
 在 Edge 和 Chrome 中手动检查：
 
 - AC01：从项目目录打开 `PRJ_00_AgentPrompt/app/index.html`（本文件所在目录下为 `../app/index.html`），检查页面显示和开发者工具 Console。
-- AC03–AC13：按 `ACCEPTANCE.md` 的 Given/When/Then 操作输入、复制、记忆、推荐及回写流程。回写只能使用临时 AGENTS.md。
+- AC10、AC29：P5 选择 COMPLETED/FAILED，核对提示文字和“前往 P6”按钮，点击后切到 P6。
+- AC28(c)：localStorage 设 `currentStep: "P6"` 和非法 `forms.P6.issueType`，刷新后控件与预览回退“实施后 Bug”。
+- AC26b、AC22：按 `ACCEPTANCE.md` 测刷新恢复。
+- AC03–AC09、AC11–AC13、AC24：按 `ACCEPTANCE.md` 的 Given/When/Then 操作输入、复制、记忆及回写流程。回写只能使用临时 AGENTS.md。
 - AC15：核对本轮文件范围。注意实施前工作区已有删除项和未跟踪目录，不能把它们误认为本轮产生。
 
 完成后更新 `ACCEPTANCE.md` 的结果和证据；不得把未实际测试的项目写成 PASS。
 
 ## 待验收项
 
-当前仍标记为 `NOT TESTED` 的网页验收项：AC01、AC03–AC13、AC15。AC02、AC14 已由第一轮自测记录为 PASS。项目文档验收 AC16、AC18–AC20 已在本轮按实际检查记录；AC17 的“仅提供两个文件即可恢复上下文”尚未通过独立新会话验证。
+当前为 `NOT TESTED`：AC01、AC03–AC13、AC15、AC17、AC22、AC24、AC26b、AC28、AC29。其余 AC 的 PASS 证据见 `ACCEPTANCE.md`。AC17 的“仅提供两个文件即可恢复上下文”尚未通过独立新会话验证。
 
 ## 恢复步骤
 
@@ -30,9 +33,10 @@
 
 1. 先读本文件，确认当前阶段、未测项和下一步。
 2. 再读 `handoff/HANDOFF_latest.md`，它是最新执行基准。
-3. 需要核对实际模板时只读 `../doc/Duo 三模型精简提示词.md（含 AGENTS.md 规则）.md`；不得把旧方案恢复为当前方案。
+3. 核对模板时：P2b、P3、P4、P5 只读 `../doc/Duo 三模型精简提示词.md（含 AGENTS.md 规则）.md`；P1、P2、AGENTS 规则块、P6 以 `handoff/HANDOFF_latest.md` 定稿为准。不得把旧方案恢复为当前方案。
 4. 继续实施前先用 P3 对照实际代码复核。若发现计划级冲突或阻塞，停止并用 P4 请计划模型裁决；不要直接跳过复核。
-5. 若只需了解之前裁决或改动结果，分别查看 `review/2026-11-23_plan-review.md` 和 `handoff/2026-11-23_implementation-report.md`。
+5. 实施后仍有 Bug 或需追加 Feature：用 P6 由计划模型基于最新 Handoff 和代码直接定位，然后走 P3 → P5；不回到 P1。
+6. 若只需了解之前裁决或改动结果，查看 `review/` 和 `handoff/` 中最新日期、最大序号的文件（当前为 `review/2026-11-24_decision_4.md`、`handoff/2026-11-24_implementation-report_3.md`）。
 
 ## 维护规则
 

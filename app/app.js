@@ -10,7 +10,8 @@
     currentStep: "P1",
     forms: {
       P1: { taskType: "Bug", requirement: "", expected: "", constraints: "" },
-      P2b: { items: ["", ""] }
+      P2b: { items: ["", ""] },
+      P6: { issueType: "实施后 Bug", issue: "", expected: "" }
     },
     contexts: {},
     statuses: {}
@@ -25,13 +26,15 @@
       currentStep: saved && T.STEPS[saved.currentStep] ? saved.currentStep : "P1",
       forms: {
         P1: { ...DEFAULT_STATE.forms.P1, ...(saved && saved.forms && saved.forms.P1 || {}) },
-        P2b: { ...DEFAULT_STATE.forms.P2b, ...(saved && saved.forms && saved.forms.P2b || {}) }
+        P2b: { ...DEFAULT_STATE.forms.P2b, ...(saved && saved.forms && saved.forms.P2b || {}) },
+        P6: { ...DEFAULT_STATE.forms.P6, ...(saved && saved.forms && saved.forms.P6 || {}) }
       },
       contexts: { ...(saved && saved.contexts || {}) },
       statuses: { ...(saved && saved.statuses || {}) }
     };
     if (!Array.isArray(state.forms.P2b.items)) state.forms.P2b.items = ["", ""];
     if (!["Bug", "Feature"].includes(state.forms.P1.taskType)) state.forms.P1.taskType = "Bug";
+    if (!["实施后 Bug", "追加 Feature"].includes(state.forms.P6.issueType)) state.forms.P6.issueType = "实施后 Bug";
     return state;
   }
 
@@ -42,6 +45,15 @@
       requirement: values.requirement,
       expected: values.expected,
       constraints: values.constraints
+    };
+  }
+
+  function getP6FieldValues(form) {
+    const values = form || {};
+    return {
+      "issue-type": values.issueType,
+      issue: values.issue,
+      "issue-expected": values.expected
     };
   }
 
@@ -102,6 +114,15 @@
         .replace("{{expected}}", form.expected || "")
         .replace("{{constraints}}", form.constraints && form.constraints.trim() ? form.constraints : "待分析");
       text = substituteRoles(text, models);
+    } else if (step === "P6") {
+      const form = formData || {};
+      const issueType = ["实施后 Bug", "追加 Feature"].includes(form.issueType) ? form.issueType : "实施后 Bug";
+      const expected = String(form.expected || "").trim() ? form.expected : "待确认";
+      text = T.PROMPTS.P6
+        .replace("{{issueType}}", issueType)
+        .replace("{{issue}}", form.issue || "")
+        .replace("{{expected}}", expected);
+      text = substituteRoles(text, models);
     } else if (step === "P2b") {
       const items = formData && Array.isArray(formData.items) ? formData.items : [];
       const list = items.filter((item) => String(item).trim()).map((item, index) => `${index + 1}. ${item}`).join("\n");
@@ -126,6 +147,7 @@
       const items = formData && Array.isArray(formData.items) ? formData.items : [];
       if (!items.some((item) => String(item).trim())) errors.push("至少填写一条补充需求");
     }
+    if (step === "P6" && !String((formData && formData.issue) || "").trim()) errors.push("问题/新需求");
     return errors;
   }
 
@@ -177,7 +199,7 @@
     return { text, action: "replace", oldSection, newSection: newRules };
   }
 
-  const api = Object.freeze({ buildPrompt, validateStep, getRecommendation, replaceAgentsSection, lineEndingOf, substituteRoles, normalizeDocsRoot, getLocalDate, getP1FieldValues });
+  const api = Object.freeze({ buildPrompt, validateStep, getRecommendation, replaceAgentsSection, lineEndingOf, substituteRoles, normalizeDocsRoot, getLocalDate, getP1FieldValues, getP6FieldValues });
   global.PromptApp = api;
 
   function init() {
@@ -247,7 +269,7 @@
     function renderFields() {
       const step = state.currentStep;
       $("step-description").textContent = T.STEPS[step].when;
-      const role = step === "P1" ? "analyst" : ["P2", "P2b", "P4"].includes(step) ? "planner" : step === "P3" || step === "P5" ? "implementer" : "";
+      const role = step === "P1" ? "analyst" : ["P2", "P2b", "P4", "P6"].includes(step) ? "planner" : step === "P3" || step === "P5" ? "implementer" : "";
       $("role-hint").textContent = role ? `建议切换到：${state.models[role]}` : "规则内容可直接复制，也可选择 AGENTS.md 回写。";
       writeButton.hidden = step !== "AGENTS";
       const downloadButton = $("download-rules");
@@ -257,6 +279,8 @@
 
       if (step === "P1") {
         setField('<div class="field"><label class="field-label" for="task-type">任务类型</label><select id="task-type" class="control"><option value="Bug">Bug</option><option value="Feature">Feature</option></select></div><div class="field"><label class="field-label" for="requirement">需求 <span aria-hidden="true">*</span></label><textarea id="requirement" class="control" rows="3" placeholder="描述 Bug 现象或新增功能"></textarea></div><div class="field"><label class="field-label" for="expected">期望结果 <span aria-hidden="true">*</span></label><textarea id="expected" class="control" rows="3" placeholder="描述期望行为或结果"></textarea></div><div class="field"><label class="field-label" for="constraints">场景/约束</label><textarea id="constraints" class="control" rows="3" placeholder="无内容时生成“待分析”"></textarea></div>', getP1FieldValues(state.forms.P1));
+      } else if (step === "P6") {
+        setField('<div class="field"><label class="field-label" for="issue-type">类型</label><select id="issue-type" class="control"><option value="实施后 Bug">实施后 Bug</option><option value="追加 Feature">追加 Feature</option></select></div><div class="field"><label class="field-label" for="issue">问题/新需求 <span aria-hidden="true">*</span></label><textarea id="issue" class="control" rows="4" placeholder="描述实施后发现的问题或需要追加的需求"></textarea></div><div class="field"><label class="field-label" for="issue-expected">期望结果 <span class="optional">可选</span></label><textarea id="issue-expected" class="control" rows="3" placeholder="留空时提示待确认"></textarea></div>', getP6FieldValues(state.forms.P6));
       } else if (step === "P2b") {
         stepFields.replaceChildren();
         const label = document.createElement("label");
@@ -344,6 +368,7 @@
     function currentForm() {
       if (state.currentStep === "P1") return state.forms.P1;
       if (state.currentStep === "P2b") return state.forms.P2b;
+      if (state.currentStep === "P6") return state.forms.P6;
       return {};
     }
 
@@ -370,12 +395,16 @@
       } else if (!recommendation) {
         recommendResult.textContent = "该状态不属于当前步骤，无法推荐下一步。";
       } else if (recommendation.terminal === "completed") {
-        recommendResult.textContent = "流程完成。按验收标准检查结果和证据。";
+        recommendResult.textContent = "流程完成。按验收标准检查结果和证据；若仍有 Bug 或需追加 Feature，可前往 P6。";
       } else if (recommendation.terminal === "failed") {
-        recommendResult.textContent = "实施失败。停止重复尝试；按项目规则评估并交计划模型复核，不要直接重试。";
+        const modelName = state.models[recommendation.model];
+        recommendResult.textContent = `实施失败。停止重复尝试，不要直接重试 P5，也不要回到 P1；可前往 P6 由 ${modelName} 定位。`;
       } else {
         const modelName = state.models[recommendation.model];
         recommendResult.textContent = `建议切换到 ${modelName}，使用 ${recommendation.next}。`;
+      }
+      if (recommendation && recommendation.next) {
+        const modelName = state.models[recommendation.model];
         goNext.textContent = `前往 ${recommendation.next} · ${modelName}`;
         goNext.hidden = false;
       }
@@ -400,7 +429,7 @@
 
     function roleForStep(step) {
       if (step === "P1") return "analyst";
-      if (["P2", "P2b", "P4"].includes(step)) return "planner";
+      if (["P2", "P2b", "P4", "P6"].includes(step)) return "planner";
       if (["P3", "P5"].includes(step)) return "implementer";
       return "";
     }
@@ -416,6 +445,11 @@
       if (state.currentStep === "P1" && ["task-type", "requirement", "expected", "constraints"].includes(id)) {
         const key = id === "task-type" ? "taskType" : id;
         state.forms.P1[key] = event.target.value;
+        persist();
+        updatePreview();
+      } else if (state.currentStep === "P6" && ["issue-type", "issue", "issue-expected"].includes(id)) {
+        const key = id === "issue-type" ? "issueType" : id === "issue-expected" ? "expected" : id;
+        state.forms.P6[key] = event.target.value;
         persist();
         updatePreview();
       }
@@ -454,10 +488,11 @@
       const step = state.currentStep;
       if (step === "P1") state.forms.P1 = { ...DEFAULT_STATE.forms.P1 };
       if (step === "P2b") state.forms.P2b = { items: ["", ""] };
+      if (step === "P6") state.forms.P6 = { ...DEFAULT_STATE.forms.P6 };
       delete state.contexts[step];
       delete state.statuses[step];
       $("extra-context").value = "";
-      if (step === "P1") renderFields();
+      if (step === "P1" || step === "P6") renderFields();
       else if (step === "P2b") { renderItems(); renderStatusOptions(); updatePreview(); }
       else { renderStatusOptions(); updatePreview(); }
       persist("已清空当前步骤。");
