@@ -2,7 +2,7 @@
 
 ## 当前结果摘要
 
-第一轮网页实施报告只将 AC02、AC14 记录为 PASS；其余 AC01、AC03–AC13、AC15 按原报告均为 `NOT TESTED`。文档验收 AC16、AC18–AC20 按已有检查记录；AC17 独立新会话验证未执行。V1.4.5 自测曾在 Edge 通过 52 项；本次 V1.5 selftest 在 Edge、Chrome 均实测 65 项通过、0 项失败。AC02、AC14、AC21、AC23、AC25–AC27、AC30 有本次自动测试证据；AC20 按 V1.5.1 修订定义为 PASS（未授权文件哈希一致，见 `review/2026-11-24_decision_3.md`）。2026-11-24 P4 裁决复跑 Edge、Chrome selftest 仍为 65/65，哈希仍一致（`review/2026-11-24_decision_4.md`）。AC10、AC28、AC29 有自动逻辑断言，但仍需页面手动验收，故整体保持 `NOT TESTED`。AC22 刷新记忆、AC24 临时文件实际回写、AC26b 刷新恢复也仍为 `NOT TESTED`。2026-11-24 后续 P5 调用在编码前因 V1.5.3 Handoff 明确“无待实施代码范围/不需要再走 P3/P5”而 BLOCKED；本轮未执行测试、未改代码，既有 AC 结果仅沿用原证据（详见 `handoff/2026-11-24_implementation-report_4.md`）。
+第一轮网页实施报告只将 AC02、AC14 记录为 PASS；其余 AC01、AC03–AC13、AC15 按原报告均为 `NOT TESTED`。文档验收 AC16、AC18–AC20 按已有检查记录；AC17 独立新会话验证未执行。V1.4.5 自测曾在 Edge 通过 52 项；本次 V1.5 selftest 在 Edge、Chrome 均实测 65 项通过、0 项失败。AC02、AC14、AC21、AC23、AC25–AC27、AC30 有本次自动测试证据；AC20 按 V1.5.1 修订定义为 PASS（未授权文件哈希一致，见 `review/2026-11-24_decision_3.md`）。2026-11-24 P4 裁决复跑 Edge、Chrome selftest 仍为 65/65，哈希仍一致（`review/2026-11-24_decision_4.md`）。AC10、AC28、AC29 有自动逻辑断言，但仍需页面手动验收，故整体保持 `NOT TESTED`。AC22 刷新记忆、AC24 临时文件实际回写、AC26b 刷新恢复也仍为 `NOT TESTED`。2026-11-24 后续 P5 调用曾因 V1.5.3 Handoff 关闭旧实施周期而 BLOCKED（详见 `handoff/2026-11-24_implementation-report_4.md`）；随后用户通过 P2b 批准新 V1.6 布局计划。本轮按 V1.6 实施，Edge/Chrome selftest 均 65/65；AC20、AC32 通过哈希/结构比对，AC31 截图已生成但当前无法视觉检查，故整体 NOT TESTED；AC33、AC34 未完成手动/用户验收。详见 `handoff/2026-11-24_implementation-report_5.md`。
 
 | AC | 当前结果 | 证据/说明 |
 |---|---|---|
@@ -19,24 +19,28 @@
 | AC11 | NOT TESTED | 追加函数有自测；未通过文件选择器写入临时文件。 |
 | AC12 | NOT TESTED | 替换函数有自测；未通过文件选择器写入临时文件。 |
 | AC13 | NOT TESTED | 纯逻辑保护有部分自测；未手动验证取消、权限失败及 API 降级。 |
-| AC14 | PASS | Edge、Chrome headless 实际加载 `app/selftest.html`，各 65 项通过、0 项失败（既有证据；本轮 P5 调用在编码前 BLOCKED，未复跑，见 `handoff/2026-11-24_implementation-report_4.md`）。 |
-| AC15 | NOT TESTED | 工作区开始时已有删除项和未跟踪目录，不能满足“整个工作区仅有 app 变更”的字面条件；本轮变更限于授权范围。 |
+| AC14 | PASS | 本轮 V1.6 CSS/HTML 修改后，Edge、Chrome headless 各 65 项通过、0 项失败（`app/selftest.html`）。 |
+| AC15 | NOT TESTED | V1.6 实施增量仅限授权的 `app/index.html`、`app/style.css`；AC15 原验收按工作区历史基线仍未满足/复判。 |
 | AC16 | PASS | 目录完整与编码验收沿用已有记录，本轮未修改目录清单文件。 |
 | AC17 | NOT TESTED | 尚未在独立新会话只提供 README 和最新 Handoff 做恢复验证。 |
 | AC18 | PASS | 当前默认模型名仍为 `Luna / Opus / Sonnet`；V1.5 定稿和版本状态已检查。 |
 | AC19 | PASS | 第一轮历史结果保留；未覆盖既有验收证据。 |
-| AC20 | PASS | 按 V1.5.1 修订定义（见 `review/2026-11-24_decision_3.md`）：`doc/` 全部 5 个文件、`app/index.html`、`app/style.css` 的 SHA-256 与 P5 实施前基线一致；P4 裁决时复算仍一致。 |
+| AC20 | PASS | V1.6 前记录的 `doc/` 5 个文件及 `app/app.js`、`app/templates.js`、`app/selftest.html` SHA-256 均复核 MATCH；完整基线见 `handoff/2026-11-24_implementation-report_5.md`。 |
 | AC21 | PASS | Edge、Chrome headless selftest 的 P1–P6 文档落盘拼接及上下文顺序断言通过。 |
 | AC22 | NOT TESTED | 规范化逻辑断言在 Edge、Chrome selftest 通过；尚未手动刷新页面验证原始输入值记忆。 |
 | AC23 | PASS | Edge、Chrome selftest 的固定日期和本地日期断言通过。 |
 | AC24 | NOT TESTED | Edge、Chrome selftest 验证 AGENTS 开关输出；尚未用临时 AGENTS.md 手动完成文件选择器回写。 |
-| AC25 | PASS | Edge、Chrome headless selftest 各 65 项通过、0 项失败；原有断言保留，仅更新 Handoff 授权的基准和计数（既有证据；本轮 P5 调用在编码前 BLOCKED，未复跑，见 `handoff/2026-11-24_implementation-report_4.md`）。 |
+| AC25 | PASS | V1.6 修改后 Edge、Chrome headless selftest 均 65/65，旧断言通过。 |
 | AC26a | PASS | Edge、Chrome selftest 中 Feature、Bug 回填映射与预览类型一致断言通过。 |
 | AC26b | NOT TESTED | 尚未手动设置 `currentStep: "P1"` 后测试 Feature、缺失值及非法值的刷新恢复。 |
 | AC27 | PASS | Edge、Chrome selftest 中 P1 V1.5 定稿逐字比对与无根因候选/接入点断言通过。 |
 | AC28 | NOT TESTED | P6 定稿、待确认、字段映射、必填校验及非法类型生成回退的自动断言通过；未手动验证存储非法 issueType 后页面控件/预览回退。 |
 | AC29 | NOT TESTED | P5/P6 状态映射断言通过；未手动点击 P5 COMPLETED/FAILED 的“前往 P6”按钮验证界面跳转。 |
 | AC30 | PASS | Edge、Chrome selftest 中 AGENTS 开关定稿与 P6 DOC_RULES 写入行/只读兜底断言通过。 |
+| AC31 | NOT TESTED | 8 张截图已生成于 `%TEMP%\\agentprompt-v16-layout`，图片未能在本环境视觉检查；DOM 度量：设置容器聚合、桌面重置按钮与输入底边对齐、预览为 `pre-wrap`、1440x900 指定元素在当前测得 viewport 中均在首屏，测得各 viewport `documentElement.scrollWidth` 未超过 `innerWidth`。AC31(f) 对比度子项 PASS：20 组组合均 ≥4.5:1，最低 5.02；图片视觉项按 Handoff 标 NOT TESTED。 |
+| AC32 | PASS | 与 `HEAD:app/index.html` 比较：32 个 id 集合相同；每个 id 的标签类型和完整起始标签属性逐项相同；`<script>`/`<link>` 顺序未改。 |
+| AC33 | NOT TESTED | 尚未手动执行步骤切换、复制、状态推荐/跳转、回写入口和刷新恢复；需按 AC33 在 Edge、Chrome 验证。 |
+| AC34 | NOT TESTED | 等待用户查看 AC31 截图/页面并确认美观度。 |
 
 ## 网页验收标准（AC01–AC15）
 
@@ -168,6 +172,8 @@
 
 **V1.5.1 修订**：只修改文档的轮次，按上述原定义判定。有代码变更的轮次，Given 改为“实施前对本轮 Handoff **未授权修改**的文件记录 SHA-256 基线”（V1.5 为 `doc/**`、`app/index.html`、`app/style.css`），Then 改为“这些文件的哈希与基线一致”；授权修改的代码文件不在比对范围内。
 
+**V1.6 适用清单**：未授权文件为 `doc/**`、`app/app.js`、`app/templates.js`、`app/selftest.html`；授权修改 `app/index.html`、`app/style.css`。
+
 ## V1.4.1 提示词落盘验收标准（AC21–AC25）
 
 ### AC21：落盘段拼接
@@ -254,6 +260,46 @@
 **Given**：默认模型名。  
 **When**：生成 AGENTS 规则块（开关关/开），以及开关开启时生成 P6。  
 **Then**：开关关闭时规则块与 Handoff V1.5 AGENTS 定稿逐字一致；开启时只在末尾追加既有文档行（AC24 规则不变）；P6 落盘写入行与 Handoff V1.5 P6 定稿一致且含只读兜底行。
+
+## V1.6 界面布局验收标准（AC31–AC34）
+
+### AC31：布局结果
+
+**Given**：Edge 与 Chrome，默认状态（P1、默认模型名、文档规范开启）。
+
+**When**：分别以 1440×900、1024×768、768×1024、375×812 打开 `app/index.html`（可用 headless `--screenshot --window-size` 截图）。
+
+**Then**：
+- (a) 头部只有标题区；模型名设置与文档落盘设置在同一个设置卡片内；“恢复默认模型名”按钮与三个输入框同行、底边对齐（≥951px）。
+- (b) 预览区长行自动换行，无横向滚动条。
+- (c) 1440×900 首屏内同时可见“复制提示词”按钮、预览区、“选择模型回复中的状态”下拉框；滚动页面时右侧输出面板保持可见（sticky）。
+- (d) 四个尺寸下页面均无横向滚动条；≤950px 为单列；375px 时设置项纵向堆叠。
+- (e) 编辑面板 eyebrow 不再是 `PROMPT BUILDER`。
+- (f)（V1.6.1）最终 `style.css` 中实际使用的每组文字前景/背景对比度 ≥ 4.5:1（WCAG 2.x 相对亮度公式，按声明的颜色静态计算，透明色按叠加后的实际颜色）。范围至少包括 `review/2026-11-24_decision_6.md` 所列 16 组中仍存在的组合，以及本轮新增或改动的组合；实施报告须列“组合 / 前景 / 背景 / 对比度”表。不含 placeholder、禁用控件文字和聚焦轮廓。无法确定实际背景的组合标 `NOT TESTED`。
+
+### AC32：结构与属性不变
+
+**Given**：实施前 `index.html` 的 id 列表（32 个：`app, cancel-write, clear-step, confirm-write, copy-prompt, copy-status, doc-rules-toggle, docs-root, docs-root-notice, editor-heading, extra-context, go-next, model-analyst, model-implementer, model-planner, new-rules, old-rules, preview-heading, prompt-preview, recommend-heading, recommend-result, reset-models, role-hint, status-select, step-description, step-fields, step-select, storage-status, validation-message, write-agents, write-dialog, write-summary`）。
+
+**When**：实施后重新提取。
+
+**Then**：id 集合与数量完全一致；每个 id 的元素类型不变；`hidden`、`role`、`aria-*`、`for`、`readonly` 等属性不变；`<script>`、`<link>` 引用和顺序不变；`app.js`、`templates.js`、`selftest.html` 未改（见 AC20 V1.6 清单）。
+
+### AC33：功能回归（手动）
+
+**Given**：V1.6 实施后的页面。
+
+**When**：依次切换 P1–P6 与 AGENTS；在 P1 填写字段；复制提示词；在 P3 选择状态并点击“前往”；在 P5 选择 COMPLETED 并点击“前往 P6”；打开 AGENTS 步骤确认回写按钮出现；修改模型名和文档根目录后刷新。
+
+**Then**：所有行为与 V1.5 一致；预览内容与复制内容一致（AC09）；Console 无错误；selftest 在 Edge、Chrome 仍为 65/65。
+
+### AC34：用户确认美观度
+
+**Given**：AC31 截图或实际页面。
+
+**When**：用户查看。
+
+**Then**：用户确认布局“比原来美观、可接受”后才记 PASS；否则记录意见，用 P6 追加调整。实施模型不得自行判定 PASS。
 
 ## 手动验收记录模板
 

@@ -1,39 +1,124 @@
-# Updated Developer Handoff — V1.5（完整版本，唯一执行依据）
+# Updated Developer Handoff — V1.6（完整版本，唯一执行依据）
 
 ## Final Objective
 
-1. **P1 职责收窄**：Luna 只读整理项目与相关代码的事实，不判断根因、不提方案；根因或接入点由 Opus 在 P2 判定，避免先入为主误导 Opus。
-2. **新增 P6「实施后修正」**：P5 完成或失败后仍有 Bug、或需追加 Feature 时，由 Opus 基于最新 Handoff、实施报告和当前代码直接定位，输出 Updated Handoff → P3 → P5；不回到 P1 重来。
+优化网页界面布局与视觉，让页面更整洁、层次更清楚（用户反馈“界面布局不太美观”）。**只改布局和样式，不改功能、提示词文本、存储格式和交互逻辑。**
 
-需求来源：`REQUIREMENTS.md` V1.5。版本对照：`PLAN.md` V1.5。
+需求来源：`REQUIREMENTS.md` V1.6。版本对照：`PLAN.md` V1.6。
 
 ## 基线（已实施，保持）
 
-- V1.4.1 文档落盘规范（DOC_RULES、`normalizeDocsRoot`、`getLocalDate`、开关与根目录控件）。
-- V1.4.5 P1 任务类型回填修复：`getP1FieldValues`、`mergeState` 的 `taskType` 回退（`handoff/2026-11-24_implementation-report_2.md`，Edge selftest 52/52）。
-- 待补验收（非本轮新增）：Chrome selftest（AC25）、AC22、AC24、AC26b 手动验收。
+- V1.5 已完成（P1 职责收窄 + P6），代码 KEEP；Edge、Chrome selftest 65/65（`handoff/2026-11-24_implementation-report_3.md`，`review/2026-11-24_decision_5.md`）。V1.5 实施周期已关闭（V1.5.3）。
+- V1.4.1 文档落盘规范、V1.4.5 P1 回填修复、V1.5 P6 全部保持。
+- 附录 A 的 V1.5 模板定稿仍是 AC02/AC21/AC27/AC30 的基准，本轮不变。
+- 2026-11-24 `app/index.html` 中共有 32 个元素 id（见 AC32），是本轮回归基线。
+
+## 现状问题（依据 `app/index.html`、`app/style.css` 代码核对）
+
+1. **顶部模型设置**：`.model-settings` 为 3 列 grid，“恢复默认模型名”按钮落到第 4 格，单独换行、左对齐，与输入框不对齐。
+2. **设置区割裂**：`.doc-settings` 是标题区与工作区之间的独立条带，用 `margin: -4px 0 22px` 硬调位置；模型设置与文档设置分处两处，层次不清。
+3. **标题重复**：编辑面板 eyebrow 为 `PROMPT BUILDER`，与页面 `h1` 重复。
+4. **预览不换行**：`.preview` 为 `white-space: pre`，中文长行横向滚动，难以阅读。
+5. **首屏信息不完整**：预览 `min-height: 500px`，加上头部和设置区，1440×900 首屏通常看不到“推荐下一步”；左右面板高度差大，右侧面板没有固定，滚动编辑区时预览和复制按钮会离开视线。
+6. **角色提示不醒目**：`#role-hint` 为普通小字，与步骤说明区分不明显。
 
 ## Final Modification Scope
 
-**代码**：仅 `app/templates.js`、`app/app.js`、`app/selftest.html`。不改 `app/index.html`（P6 字段由 JS 渲染）、`app/style.css`（除非布局确实需要）、`doc/**`。  
-**文档（P5）**：`docs/ACCEPTANCE.md` 结果表、带日期实施报告。（`docs/PROJECT_CONTEXT.md`、`docs/README.md` 已于 2026-11-24 经用户授权完成，不属于后续待实施范围；V1.5.3。）
+**代码**：仅 `app/style.css`、`app/index.html`。  
+**不改**：`app/app.js`、`app/templates.js`、`app/selftest.html`、`doc/**`。  
+**文档（P5）**：`docs/ACCEPTANCE.md` 结果表、带日期实施报告。
 
 ## Files to Modify
 
 | 文件 | 修改内容 |
 |---|---|
-| `app/templates.js` | `STEPS.P1` 标题与说明；`STEPS` 在 P5 后、AGENTS 前新增 P6；`PROMPTS.P1`、`PROMPTS.P2` 首行按定稿；新增 `PROMPTS.P6`；`AGENTS_RULES` 角色行改写并新增 P6 行；`DOC_RULES.steps.P6`；`STATUS_OPTIONS.P5` 的 COMPLETED/FAILED 增加 `next: "P6", model: "planner"`（保留 `terminal`）；新增 `STATUS_OPTIONS.P6`。 |
-| `app/app.js` | 见 Required Changes 第 3 条。 |
-| `app/selftest.html` | 见 Required Changes 第 4 条。 |
-| `docs/PROJECT_CONTEXT.md` | **已完成（2026-11-24，用户授权），不属于后续待实施范围。** 原内容：角色表与主要流程补 P6。 |
-| `docs/README.md` | **已完成（2026-11-24，用户授权），不属于后续待实施范围。** 原内容：流程/恢复说明补 P6。 |
+| `app/index.html` | 只做结构包装和静态文案：把模型设置与文档落盘设置放进同一个“全局设置”卡片；编辑面板 eyebrow 改为不与 h1 重复的文案；可增加仅用于布局的包装元素和 class。 |
+| `app/style.css` | 按 Required Changes 调整布局、间距、预览换行、粘性预览、角色提示样式、响应式断点。 |
 | `docs/ACCEPTANCE.md` | 按实测结果更新结果表。 |
 
 ## Files to Create
 
-- `docs/handoff/<本地日期>_implementation-report.md`；同名已存在时依次加 `_2`、`_3`（以实际目录为准）。
+- `docs/handoff/<本地日期>_implementation-report.md`；同名已存在时依次加 `_2`、`_3`…（以实际目录为准，当前已有到 `_4`）。
 
-## 模板定稿（逐字基准）
+## Required Changes
+
+具体 CSS 数值、class 命名和局部写法由实施模型决定；以下为必须达成的结果。
+
+1. **全局设置卡片**（index.html + css）：
+   - 页面头部只保留标题区（eyebrow、h1、subtitle）。
+   - 头部下方一个卡片同时包含：模型名称一行（3 个输入 + “恢复默认模型名”按钮，按钮与输入框底边对齐，位于同一行末尾）；文档落盘设置一行（开关 + 根目录输入 + 提示）。
+   - 删除 `margin: -4px` 之类的负边距修补。
+   - 保留原 `aria-label="模型名称设置"`、`aria-label="文档落盘规范设置"` 两个分组语义。
+2. **去重标题**：编辑面板 eyebrow 不再使用 `PROMPT BUILDER`，默认改为 `INPUT`（待确认：是否统一改为中文）。
+3. **预览换行**：`.preview` 自动换行（如 `pre-wrap` + `overflow-wrap`），不出现横向滚动条；`textarea.value` 不变，复制内容仍与生成文本逐字一致（AC09 不变）。
+4. **首屏与粘性预览**：
+   - 宽度 ≥ 1200px：右侧输出面板 `position: sticky`（贴顶留边距）；预览高度随视口自适应，保证 1440×900 首屏内同时可见“复制提示词”按钮、预览区和“选择模型回复中的状态”下拉框。
+   - 宽度 951–1199px：保持两列，不强制 sticky。
+5. **角色提示**：`#role-hint` 做成醒目的标签/徽章样式，与步骤说明区分；文字内容仍由 JS 写入，不改。
+6. **统一视觉**：圆角、边框、间距统一为少量固定值；主色、聚焦样式和文字对比度不降低。**对比度（V1.6.1）**：最终 CSS 中实际使用的每组文字前景/背景对比度 ≥ 4.5:1；检查对象、方法和当前基线（16 组，最低 5.02）见 `review/2026-11-24_decision_6.md` 与 AC31(f)。placeholder、禁用控件文字和聚焦轮廓不在本项范围内。
+7. **响应式**：保留 ≤950px 单列、≤560px 紧凑布局；375、768、1024、1440 宽度下页面无横向滚动条，设置卡片在窄屏下纵向堆叠。
+8. **回写对话框**（`#write-dialog`）：样式可随整体统一，但结构和按钮不改。
+
+## Must NOT Change
+
+- `app/app.js`、`app/templates.js`、`app/selftest.html`、`doc/**`。
+- `index.html` 中现有 32 个元素 id（名称、数量）及其元素类型；`hidden`、`role`、`aria-*`、`for`、`readonly`、`maxlength`、`autocomplete`、`spellcheck` 等属性；`<script>` 与 `<link>` 的引用和顺序。
+- 所有按钮、标签、占位符、页脚等用户可见文案，**除** Required Changes 第 2 条的 eyebrow。
+- 提示词内容、默认模型名、localStorage 结构与 STORAGE_KEY、状态推荐与回写逻辑。
+- 不引入外部字体、CSS 框架、图片或网络资源（页面须离线可用）。
+- 不 commit、不 push。
+
+## Final Implementation Steps
+
+1. P3 依据本文件和实际代码复核。
+2. 首次编辑前记录 `git status`、`doc/**`、`app/app.js`、`app/templates.js`、`app/selftest.html` 的 SHA-256 基线，以及 `index.html` 的 id 列表（AC32）。
+3. 改 `index.html` 结构 → 立即复核 id 列表与基线一致。
+4. 改 `style.css`。
+5. Edge、Chrome 运行 `selftest.html`，须仍为 65/65。
+6. 用 Edge/Chrome headless `--screenshot --window-size=W,H` 生成 1440×900、1024×768、768×1024、375×812 截图（保存在仓库外的临时目录，不提交），检查 AC31；手动检查 AC09、AC33。
+7. 复核第 2 步哈希；更新 `ACCEPTANCE.md` 结果表；写实施报告。
+
+## Acceptance Criteria
+
+已修订：AC20（V1.6 未授权文件清单）。新增：AC31–AC34（定义见 `ACCEPTANCE.md`）。其余 AC 定义和结果不变。
+
+- **AC20**：V1.6 核验 `doc/**`、`app/app.js`、`app/templates.js`、`app/selftest.html` 的哈希不变。
+- **AC31**：布局结果（设置卡片、按钮对齐、预览换行、首屏可见、无横向滚动）；(f) 文字对比度 ≥ 4.5:1（V1.6.1）。
+- **AC32**：id 与关键属性不变。
+- **AC33**：功能回归（步骤切换、复制、状态推荐、前往 P6、回写入口、刷新恢复）。
+- **AC34**：用户确认美观度（主观项，仅用户确认后可记 PASS）。
+
+## Verification Plan
+
+- Edge、Chrome selftest：65/65（回归，AC14/AC25）。
+- id 列表比对（AC32），可用 PowerShell 正则提取 `id="…"` 后与基线比较。
+- 4 个尺寸截图（AC31），由实施模型说明截图路径与观察结果；无法查看图像时如实标 `NOT TESTED`，交给用户查看。
+- 对比度（AC31(f)）：按 WCAG 2.x 公式对最终 CSS 颜色组合静态计算，在实施报告中列表；脚本不进仓库。
+- 手动：AC09、AC33。
+- SHA-256 复核（AC20）。
+- 未执行的项标 `NOT TESTED`。
+
+## Stop Conditions
+
+- 需要改 `app.js`、`templates.js`、`selftest.html` 或任何 id 才能实现布局。
+- 需要改提示词、交互逻辑或用户可见文案（第 2 条除外）。
+- selftest 出现任何失败。
+- 需要引入外部资源。
+
+## 设计默认值与待确认
+
+- 保留现有蓝色主题与浅灰背景（待确认：是否需要换配色或深色模式——本轮不做）。
+- eyebrow 文案默认 `INPUT`；是否全站英文 eyebrow 改中文：待确认。
+- 步骤选择仍为下拉框。改为步骤条/标签页需要改 `app.js`（`renderStepOptions`），不在本轮；如需要，后续用 P6 追加 Feature。
+- 遗留（不在本轮）：`selftest.html` 断言名“P5 FAILED 是结束提示，不生成下一步”已过时，本轮不授权改 selftest。
+
+## 当前进度（V1.6.1）
+
+- V1.6 方案已批准，代码未修改。V1.6.1（`review/2026-11-24_decision_6.md`）为 AC31 补充对比度检查 (f)，范围不变。
+- 下一步：P3 复核本 Handoff；READY 后进入 P5。
+- V1.5 遗留手动验收（AC10、AC28(c)、AC29、AC01、AC03–AC09、AC11–AC13、AC22、AC24、AC26b、AC17）仍待执行，可与 V1.6 的 AC33 一并做。
+
+## 附录 A：V1.5 模板定稿（逐字基准，本轮不变）
 
 下列文本中的换行即 `\n`。`{{…}}` 为占位符。
 
@@ -123,94 +208,9 @@ P6: PLAN APPROVED   → P3 / implementer
 
 其余映射不变。
 
-## Required Changes
+## 附录 B：此前裁决摘要（仍有效）
 
-1. **templates.js**：按上方定稿逐字修改；只替换指定内容，其余字符串不动。
-2. **既有基线**：DOC_RULES 公共文本、`normalizeDocsRoot`、`getLocalDate`、AGENTS 回写安全逻辑、P1 回填修复（V1.4.5）全部保持。
-3. **app.js**：
-   1. `DEFAULT_STATE.forms.P6 = { issueType: "实施后 Bug", issue: "", expected: "" }`；`mergeState` 合并 `forms.P6`，`issueType` 不是两个合法值时回退 `实施后 Bug`。不改 STORAGE_KEY；旧存储缺 P6 时用默认值。
-   2. 新增纯函数 `getP6FieldValues(form)` → `{ "issue-type": form.issueType, issue: form.issue, "issue-expected": form.expected }`，追加到 `PromptApp` 导出（只增不改）。DOM id 使用 `issue-type`、`issue`、`issue-expected`，避免与 P1 的 `expected` 冲突。
-   3. `buildPrompt`：新增 P6 分支，按定稿替换并调用 `substituteRoles`；随后沿用现有 DOC_RULES/补充上下文拼接。
-   4. `validateStep`：P6 的 `issue` 去空白为空时返回 `问题/新需求`。
-   5. `init()` 内：P6 的 role 为 `planner`（`renderFields` 角色提示与 `roleForStep` 两处）；`renderFields` 新增 P6 分支（`issue-type` 下拉：实施后 Bug / 追加 Feature；`issue` 必填文本域；`issue-expected` 可选文本域），用 `setField(markup, getP6FieldValues(state.forms.P6))`；`currentForm` 返回 P6 表单；`stepFields` 输入事件处理 P6 三个 id → state key 映射；“清空当前步骤”支持 P6。
-   6. `showRecommendation`：`terminal === "completed"` 时提示 `流程完成。按验收标准检查结果和证据；若仍有 Bug 或需追加 Feature，可前往 P6。`；`terminal === "failed"` 时提示 `实施失败。停止重复尝试，不要直接重试 P5，也不要回到 P1；可前往 P6 由 {计划模型名} 定位。`。两种情况在 `recommendation.next` 存在时显示 `前往 P6 · {计划模型名}` 按钮；不自动跳转。
-4. **selftest.html**（不删除断言、不放宽判定）：
-   1. 更新基准常量 `filledP1`、`sourceP2`、`sourceAgents` 为 V1.5 定稿，独立写出，不引用 `PromptTemplates`。
-   2. 角色替换断言的步骤列表加入 P6（给出合法 P6 表单），计数改为 4/9/7。
-   3. AC21 的 `docSteps` 加入 P6（含兜底行）。
-   4. 新增 AC27（P1 定稿、无“根因候选/接入点”）、AC28（P6 定稿与 `待确认`、`validateStep` 缺项、`getP6FieldValues` 映射）、AC29（P5 COMPLETED/FAILED 的 `terminal`+`next`、P6 两条路由）、AC30（AGENTS 开关关/开、P6 落盘行）断言。
-   5. P2b、P3、P4、P5 的源文基准及其余断言保持不变。
-
-## Must NOT Change
-
-- `doc/**` 源文件（保留为 V1.2 历史参考）。
-- P2b、P3、P4、P5 正文；P2 第 2 行起正文。
-- DOC_RULES 公共文本、P1–P5 写入行、AGENTS 文档附加行。
-- P5 BLOCKED 及其他既有路由；P5 COMPLETED/FAILED 的 `terminal` 值。
-- 默认模型名；P1 表单字段、默认 `Bug`、`Bug/Feature` 选项及 V1.4.5 回填修复；localStorage 已有字段与 STORAGE_KEY。
-- AGENTS 回写的唯一章节、确认、权限失败和降级规则。
-- `setField` 函数体；`PromptApp` 现有导出成员。
-- 不 commit、不 push。
-
-## Final Implementation Steps
-
-1. P3 依据本文件和实际代码复核；无待落盘文件需补写。
-2. 实施前记录 `git status`，以及 `doc/`、`app/index.html`、`app/style.css` 的 SHA-256 基线（**必须在首次编辑前完成**；上轮遗漏导致 AC20 无法验证）。
-3. 改 `templates.js` → Edge 运行 selftest，确认只有预期的基准断言失败（P1/P2/AGENTS/计数），无脚本错误。
-4. 改 `app.js` → 改 `selftest.html` → Edge、Chrome 运行 selftest，全部 PASS。
-5. 手动验收 AC28(c)、AC29 按钮、AC10 修订提示文字；补做此前遗留的 AC26b、AC22、AC24（若执行）。
-6. 更新 `ACCEPTANCE.md` 结果表；写实施报告；复核第 2 步哈希。（`PROJECT_CONTEXT.md`、`README.md` 已完成，V1.5.3。）
-
-> 以上步骤 1–6 已执行完毕（见当前进度）；不再重复执行。
-
-## Acceptance Criteria
-
-已修订：AC02、AC10、AC21、AC25（定义见 `ACCEPTANCE.md` 各条“V1.5 修订”）。新增：AC27–AC30（定义见 `ACCEPTANCE.md`）。其余 AC 定义不变；AC26a/AC26b 继续有效。
-
-要点：
-- **AC02**：P2b/P3/P4/P5 对照 `doc/` 源文；P1/P2/AGENTS/P6 对照本 Handoff 定稿；基准独立写在 selftest。
-- **AC10/AC29**：P5 COMPLETED/FAILED 仍终止，提供“前往 P6”按钮；P6 → P3 或 P2b。
-- **AC21/AC30**：落盘段覆盖 P6；P6 含兜底行。
-- **AC25**：仅允许更新指定基准与计数；Edge、Chrome 全部 PASS。
-- **AC27**：P1 不含根因候选/接入点要求。
-- **AC28**：P6 定稿、`待确认` 回退、必填校验、非法类型回退。
-
-## Verification Plan
-
-- Edge、Chrome 运行 `app/selftest.html`，记录通过/失败数。本机此前未找到 Chrome；若仍不可用，AC25 标 `NOT TESTED`，并说明可通过 `.gitlab/duo/agent-config.yml` 提供。
-- 手动：P5 COMPLETED/FAILED 的提示与按钮 → 切到 P6；P6 表单缺项提示；localStorage 写入非法 `forms.P6.issueType`（且 `currentStep: "P6"`）后刷新。
-- SHA-256 复核 `doc/`、`index.html`、`style.css` 未变。
-- 未执行的项标 `NOT TESTED`。
-
-## Stop Conditions
-
-- 需要修改 P2b/P3/P4/P5 正文、`doc/**` 或 BLOCKED 等既有路由。
-- 改动后除预期基准外，原有断言失败。
-- 需要修改 `index.html` 才能渲染 P6（应由 JS 渲染；若不可行，停止并报告）。
-- 需改本 Handoff 未授权的文件。
-
-## 设计默认值与待确认
-
-- **P5 FAILED 也提供前往 P6**（原 AC10：“不生成下一步”）。理由：失败后应由 Opus 定位，而不是 Sonnet 重试或回到 P1。若用户希望 FAILED 仍只提示停止，删除 FAILED 的 `next`/`model` 即可，其余不变。
-- **P6 表单**：类型 + 问题/新需求（必填）+ 期望结果（可选）。
-- STEPS 标题中的“GPT-6 Luna / Opus 5.5 / Sonnet 5.5”为既有静态文本，本轮不改（与可编辑模型名不联动，属历史设计）。
-
-## V1.5.1 / V1.5.2 裁决补充
-
-- 依据：`review/2026-11-24_decision_3.md`（V1.5.1）、`review/2026-11-24_decision_4.md`（V1.5.2）。
-- **AC20**：有代码变更的轮次只核验本 Handoff 未授权修改的文件（`doc/**`、`app/index.html`、`app/style.css`）；定义见 `ACCEPTANCE.md` AC20“V1.5.1 修订”。
-- **`docs/PROJECT_CONTEXT.md`、`docs/README.md`**：从 Files to Modify 与步骤 6 移出；2026-11-24 经用户授权，已只改受影响行（已完成）。
-- **非阻塞遗留**：`app/selftest.html` 断言名“P5 FAILED 是结束提示，不生成下一步”已过时；下次授权改动 selftest 时只改名称，不改判定。
-
-## V1.5.3 裁决补充
-
-- 依据：`review/2026-11-24_plan-review_5.md`（P3 REVIEW REQUIRED）、`review/2026-11-24_decision_5.md`。
-- 文档范围冲突已消除：上文 Scope、Files to Modify、步骤 6 已标注 PROJECT_CONTEXT/README 已完成。
-- **V1.5 实施周期已关闭。** 对本 Handoff 再运行 P3 时，不输出 `PLAN STATUS: READY TO IMPLEMENT`；应说明已完成并指向手动验收。新的代码工作须先经 P6（实施后 Bug / 追加 Feature）或 P2b 生成新 Handoff。
-- 是否把上述规则固化到 P3 模板：待确认（属新 Feature，如需走 P6）。
-
-## 当前进度（V1.5.3）
-
-- V1.5 代码已实施（`app/templates.js`、`app/app.js`、`app/selftest.html`），裁决 KEEP；结果为 COMPLETED（含手动验收遗留）。无待实施代码范围。
-- 证据：`handoff/2026-11-24_implementation-report_3.md`；2026-11-24 decision_4、decision_5 两次复跑 Edge、Chrome selftest 均为 65/65；`doc/`、`index.html`、`style.css` 哈希与基线一致。
-- 下一步：不需要再走 P3/P5。用户手动验收 AC10、AC28(c)、AC29 及遗留的 AC01、AC03–AC09、AC11–AC13、AC22、AC24、AC26b；AC17 待独立新会话验证（PROJECT_CONTEXT/README 已同步）。
+- **AC20 适用范围**（V1.5.1，`review/2026-11-24_decision_3.md`）：有代码变更的轮次只核验本 Handoff 未授权修改的文件。
+- **PROJECT_CONTEXT/README**（V1.5.2–V1.5.3）：已于 2026-11-24 更新；本轮不改。
+- **已完成 Handoff 不重复实施**（V1.5.3，`review/2026-11-24_decision_5.md`）：对已完成的 Handoff 再跑 P3/P5 时不实施；新代码工作须先经 P6 或 P2b 生成新 Handoff。V1.6 即为经 P2b 生成的新 Handoff。
+- V1.5 完整 Required Changes 见 git 历史及 `handoff/2026-11-24_implementation-report_3.md`。

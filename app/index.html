@@ -17,31 +17,34 @@
         <h1>Prompt Builder</h1>
         <p class="subtitle">选择工作流步骤，填写需求，预览并复制提示词。</p>
       </div>
+    </header>
+
+    <div class="global-settings">
       <div class="model-settings" aria-label="模型名称设置">
         <label>分析模型<input id="model-analyst" autocomplete="off" maxlength="80"></label>
         <label>计划模型<input id="model-planner" autocomplete="off" maxlength="80"></label>
         <label>实施模型<input id="model-implementer" autocomplete="off" maxlength="80"></label>
         <button id="reset-models" class="button button-quiet" type="button">恢复默认模型名</button>
       </div>
-    </header>
 
-    <section class="doc-settings" aria-label="文档落盘规范设置">
-      <label class="doc-toggle-label" for="doc-rules-toggle">
-        <input id="doc-rules-toggle" type="checkbox">
-        附加文档落盘规范
-      </label>
-      <div class="doc-root-field">
-        <label class="field-label" for="docs-root">文档根目录（相对于目标项目根目录）</label>
-        <input id="docs-root" class="control" type="text" value="docs" autocomplete="off" spellcheck="false">
-        <p id="docs-root-notice" class="help-text" role="status" aria-live="polite"></p>
-      </div>
-    </section>
+      <section class="doc-settings" aria-label="文档落盘规范设置">
+        <label class="doc-toggle-label" for="doc-rules-toggle">
+          <input id="doc-rules-toggle" type="checkbox">
+          附加文档落盘规范
+        </label>
+        <div class="doc-root-field">
+          <label class="field-label" for="docs-root">文档根目录（相对于目标项目根目录）</label>
+          <input id="docs-root" class="control" type="text" value="docs" autocomplete="off" spellcheck="false">
+          <p id="docs-root-notice" class="help-text" role="status" aria-live="polite"></p>
+        </div>
+      </section>
+    </div>
 
     <main class="workspace">
       <section class="panel editor-panel" aria-labelledby="editor-heading">
         <div class="panel-heading">
           <div>
-            <p class="eyebrow">PROMPT BUILDER</p>
+            <p class="eyebrow">INPUT</p>
             <h2 id="editor-heading">选择步骤并填写</h2>
           </div>
         </div>

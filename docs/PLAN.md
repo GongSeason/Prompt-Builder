@@ -150,9 +150,41 @@ V1.4.5 已由 P5 实施（`handoff/2026-11-24_implementation-report_2.md`）：E
 | 已完成 Handoff 再跑 P3 | 未定义；按模板会输出 READY TO IMPLEMENT | 不输出 READY；V1.5 实施周期关闭；新代码工作须经 P6 或 P2b 生成新 Handoff |
 | 代码 / AC | — | 不变（KEEP；ACCEPTANCE 不改） |
 
+### V1.6 — 界面布局优化（P2b）
+
+用户需求见 `REQUIREMENTS.md` V1.6。
+
+变更对照（旧 → 新）：
+
+| 项目 | 旧（V1.5.3） | 新（V1.6） |
+|---|---|---|
+| 实施周期 | V1.5 已关闭，无待实施范围 | 新开 V1.6 实施周期：P3 → P5 |
+| 代码范围 | 无 | 仅 `app/index.html`（结构包装 + 1 处 eyebrow 文案）、`app/style.css` |
+| 设置区 | 模型设置在头部右侧 3 列 grid，重置按钮单独换行；文档设置为独立条带，负边距定位 | 头部只留标题；下方一个“全局设置”卡片：模型名一行（按钮同行对齐）+ 文档落盘一行 |
+| 编辑面板 eyebrow | `PROMPT BUILDER`（与 h1 重复） | `INPUT`（待确认是否改中文） |
+| 预览 | `white-space: pre`，长行横向滚动；固定 500px | 自动换行；≥1200px 时右侧面板 sticky，高度随视口，1440×900 首屏可见复制按钮、预览、状态下拉框 |
+| 角色提示 | 普通小字 | 标签/徽章样式 |
+| 响应式 | ≤950 单列、≤560 紧凑 | 保留；375/768/1024/1440 无横向滚动 |
+| AC | AC01–AC30 | AC20 修订未授权文件清单；新增 AC31–AC34 |
+| 不变 | — | `app.js`、`templates.js`、`selftest.html`、`doc/**`、32 个元素 id 与属性、用户可见文案（eyebrow 除外）、提示词、存储、逻辑 |
+
+### V1.6.1 — AC31 补充对比度检查
+
+依据 `review/2026-11-24_plan-review_7.md`（REVIEW REQUIRED），裁决见 `review/2026-11-24_decision_6.md`（ACCEPT）：
+
+| 项目 | 旧（V1.6） | 新（V1.6.1） |
+|---|---|---|
+| 对比度要求 | Required Changes 第 6 条要求 ≥ 4.5:1，但 AC31 没有对应检查 | AC31 新增 (f)：对最终 CSS 文字颜色组合按 WCAG 公式静态计算，每组 ≥ 4.5:1，实施报告列表 |
+| 基线 | 未记录 | 16 组现有组合全部达标，最低 5.02（`--muted` 在页面背景上） |
+| 范围 / 代码 | — | 不变（仅 `index.html`、`style.css`） |
+
 ## 当前实施步骤
 
-V1.5 代码已实施并保留（KEEP），记为 COMPLETED（含手动验收遗留）；V1.5.3 起实施周期关闭，不再走 P3/P5。2026-11-24 复跑 Edge、Chrome selftest 均为 65/65；未授权修改文件的哈希与基线一致。
+V1.5 代码已实施并保留（KEEP），记为 COMPLETED（含手动验收遗留）；V1.5 周期已关闭。
+
+V1.6 方案已批准、代码未修改。下一步：按最新 Handoff 执行 P3 复核，READY 后由 P5 修改 `app/index.html`、`app/style.css`。V1.5 遗留手动验收仍待执行。
+
+以下为 V1.5 周期的历史步骤：2026-11-24 复跑 Edge、Chrome selftest 均为 65/65；未授权修改文件的哈希与基线一致。
 
 下一步：
 1. 用户在 Edge/Chrome 手动验收 AC10、AC28(c)、AC29，以及遗留的 AC01、AC03–AC09、AC11–AC13、AC22、AC24、AC26b。
