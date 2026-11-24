@@ -97,6 +97,19 @@
       equal("P1 字段替换及默认约束", PromptApp.buildPrompt("P1", { taskType: "Bug", requirement: "需求示例", expected: "期望示例", constraints: "" }, defaults, ""), filledP1);
       const featureP1 = PromptApp.buildPrompt("P1", { taskType: "Feature", requirement: "需求", expected: "结果", constraints: "仅限本地使用" }, defaults, "");
       assert("P1 Feature 和非空约束按原样生成", featureP1.includes("任务类型：Feature\n需求：需求\n期望结果：结果\n场景/约束：仅限本地使用"));
+      [
+        { label: "Feature", form: { taskType: "Feature", requirement: "r", expected: "e", constraints: "c" } },
+        { label: "Bug", form: { taskType: "Bug", requirement: "r", expected: "e", constraints: "c" } }
+      ].forEach(({ label, form }) => {
+        const mapped = PromptApp.getP1FieldValues(form);
+        const generatedTaskType = PromptApp.buildPrompt("P1", form, defaults, "").match(/任务类型：([^\r\n]+)/)[1];
+        assert(`AC26a ${label} 回填映射与预览类型一致`,
+          Object.keys(mapped).join(",") === "task-type,requirement,expected,constraints" &&
+          !Object.prototype.hasOwnProperty.call(mapped, "taskType") &&
+          mapped["task-type"] === form.taskType && mapped.requirement === form.requirement &&
+          mapped.expected === form.expected && mapped.constraints === form.constraints &&
+          generatedTaskType === mapped["task-type"]);
+      });
       equal("P2b 去除空项并重新编号", PromptApp.buildPrompt("P2b", { items: ["第一项", "  ", "第三项"] }, defaults, ""), filledP2b);
       equal("补充上下文原样追加", PromptApp.buildPrompt("P2", {}, defaults, "补充内容"), `${sourceP2}\n\n补充内容`);
       assert("P1 缺少需求时校验失败", PromptApp.validateStep("P1", { requirement: "", expected: "有值" }).includes("需求"));

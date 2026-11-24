@@ -31,7 +31,18 @@
       statuses: { ...(saved && saved.statuses || {}) }
     };
     if (!Array.isArray(state.forms.P2b.items)) state.forms.P2b.items = ["", ""];
+    if (!["Bug", "Feature"].includes(state.forms.P1.taskType)) state.forms.P1.taskType = "Bug";
     return state;
+  }
+
+  function getP1FieldValues(form) {
+    const values = form || {};
+    return {
+      "task-type": values.taskType,
+      requirement: values.requirement,
+      expected: values.expected,
+      constraints: values.constraints
+    };
   }
 
   function substituteRoles(text, models) {
@@ -166,7 +177,7 @@
     return { text, action: "replace", oldSection, newSection: newRules };
   }
 
-  const api = Object.freeze({ buildPrompt, validateStep, getRecommendation, replaceAgentsSection, lineEndingOf, substituteRoles, normalizeDocsRoot, getLocalDate });
+  const api = Object.freeze({ buildPrompt, validateStep, getRecommendation, replaceAgentsSection, lineEndingOf, substituteRoles, normalizeDocsRoot, getLocalDate, getP1FieldValues });
   global.PromptApp = api;
 
   function init() {
@@ -245,7 +256,7 @@
       context.value = state.contexts[step] || "";
 
       if (step === "P1") {
-        setField('<div class="field"><label class="field-label" for="task-type">任务类型</label><select id="task-type" class="control"><option value="Bug">Bug</option><option value="Feature">Feature</option></select></div><div class="field"><label class="field-label" for="requirement">需求 <span aria-hidden="true">*</span></label><textarea id="requirement" class="control" rows="3" placeholder="描述 Bug 现象或新增功能"></textarea></div><div class="field"><label class="field-label" for="expected">期望结果 <span aria-hidden="true">*</span></label><textarea id="expected" class="control" rows="3" placeholder="描述期望行为或结果"></textarea></div><div class="field"><label class="field-label" for="constraints">场景/约束</label><textarea id="constraints" class="control" rows="3" placeholder="无内容时生成“待分析”"></textarea></div>', state.forms.P1);
+        setField('<div class="field"><label class="field-label" for="task-type">任务类型</label><select id="task-type" class="control"><option value="Bug">Bug</option><option value="Feature">Feature</option></select></div><div class="field"><label class="field-label" for="requirement">需求 <span aria-hidden="true">*</span></label><textarea id="requirement" class="control" rows="3" placeholder="描述 Bug 现象或新增功能"></textarea></div><div class="field"><label class="field-label" for="expected">期望结果 <span aria-hidden="true">*</span></label><textarea id="expected" class="control" rows="3" placeholder="描述期望行为或结果"></textarea></div><div class="field"><label class="field-label" for="constraints">场景/约束</label><textarea id="constraints" class="control" rows="3" placeholder="无内容时生成“待分析”"></textarea></div>', getP1FieldValues(state.forms.P1));
       } else if (step === "P2b") {
         stepFields.replaceChildren();
         const label = document.createElement("label");

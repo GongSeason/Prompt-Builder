@@ -2,7 +2,7 @@
 
 ## 当前结果摘要
 
-第一轮网页实施报告只将 AC02、AC14 记录为 PASS；其余 AC01、AC03–AC13、AC15 按原报告均为 `NOT TESTED`。文档验收 AC16、AC18–AC20 按本地记录创建时的实际检查记录；AC17 独立新会话验证未执行。V1.4.1 本次 P5 自测 AC14、AC21、AC23、AC25 为 PASS；AC22 的刷新记忆和 AC24 的实际临时文件回写仍为 `NOT TESTED`。
+第一轮网页实施报告只将 AC02、AC14 记录为 PASS；其余 AC01、AC03–AC13、AC15 按原报告均为 `NOT TESTED`。文档验收 AC16、AC18–AC20 按本地记录创建时的实际检查记录；AC17 独立新会话验证未执行。此前 V1.4.1 自测记录 AC14、AC21、AC23、AC25 为 PASS；本次 V1.4.5 在 Edge headless 实测 selftest 52 项通过、0 项失败。AC14、AC21、AC23、AC26a 有本次 Edge 测试证据；AC25 仍 `NOT TESTED`（本机未找到 Chrome）；AC22 刷新记忆、AC24 临时文件实际回写、AC26b 页面恢复场景仍 `NOT TESTED`。
 
 | AC | 当前结果 | 证据/说明 |
 |---|---|---|
@@ -19,18 +19,20 @@
 | AC11 | NOT TESTED | 追加函数有自测；未通过文件选择器写入临时文件。 |
 | AC12 | NOT TESTED | 替换函数有自测；未通过文件选择器写入临时文件。 |
 | AC13 | NOT TESTED | 纯逻辑保护有部分自测；未手动验证取消、权限失败及 API 降级。 |
-| AC14 | PASS | Edge、Chrome 的浏览器内自测各 50 项通过、0 项失败（本次 P5 重新运行）。 |
-| AC15 | NOT TESTED | 工作区开始时已有删除项和未跟踪目录，不能满足“整个工作区仅有 app 变更”的字面条件；本轮新增内容仍在授权范围内。 |
+| AC14 | PASS | Edge headless 实际加载 `app/selftest.html`：52 项通过、0 项失败。Chrome 本机未找到。 |
+| AC15 | NOT TESTED | 工作区开始时已有删除项和未跟踪目录，不能满足“整个工作区仅有 app 变更”的字面条件；本轮修改限于 Handoff 授权文件。 |
 | AC16 | PASS | 本轮创建了目录清单中的 8 个 Markdown 文件；用 PowerShell 检查 UTF-8 解码及无替换字符。 |
 | AC17 | NOT TESTED | README 包含指定恢复小节；尚未在独立新会话中只提供 README 和最新 Handoff 做恢复验证。 |
 | AC18 | PASS | 检查当前方案值、版本摘要和有效 Handoff；默认角色名为 `Luna / Opus / Sonnet`，过时值仅在已作废版本摘要中。 |
 | AC19 | PASS | 验收结果与第一轮实施报告一致；只有 AC02、AC14 为 PASS，其余第一轮 AC 为 NOT TESTED。 |
-| AC20 | PASS | 本轮前后对 `app/` 和 `doc/` 所有文件的 SHA-256 结果一致；新增文件仅在 `docs/`。 |
-| AC21 | PASS | Edge/Chrome 自测逐项比对 P1、P2、P2b、P3、P4、P5 的 DOC_RULES 拼接及补充上下文顺序，均通过。 |
-| AC22 | NOT TESTED | 8 种路径规范化输入均通过自测；尚未手动刷新页面验证原始输入值记忆。 |
-| AC23 | PASS | Edge/Chrome 自测通过固定日期格式和未注入时使用本地日期路径的断言。 |
-| AC24 | NOT TESTED | 自测验证 AGENTS 规则开关开/关输出；尚未用临时 AGENTS.md 手动完成文件选择器回写。 |
-| AC25 | PASS | Edge、Chrome 的 selftest 各 50 项通过、0 项失败；原有 31 条断言保留。 |
+| AC20 | NOT TESTED | 本轮开始前未记录 Handoff 指定的 SHA-256 基线，无法据哈希比较宣称基线文件未变化；实施范围通过本轮实际编辑清单复核。 |
+| AC21 | PASS | Edge headless selftest 中 P1、P2、P2b、P3、P4、P5 DOC_RULES 拼接及上下文顺序断言全部通过（52/52）。 |
+| AC22 | NOT TESTED | 路径规范化逻辑断言在 Edge selftest 通过；尚未手动刷新页面验证原始输入值记忆。 |
+| AC23 | PASS | Edge selftest 固定日期及未注入日期使用本地日期断言通过。 |
+| AC24 | NOT TESTED | Edge selftest 验证 AGENTS 规则开关输出；尚未用临时 AGENTS.md 手动完成文件选择器回写。 |
+| AC25 | NOT TESTED | Edge headless 52 项通过、0 项失败；本机未找到 Chrome，未完成 Handoff 要求的 Edge + Chrome 双浏览器运行。 |
+| AC26a | PASS | Edge headless 新增 Feature、Bug 两条映射与预览类型一致断言均通过。 |
+| AC26b | NOT TESTED | 尚未在 Edge/Chrome 手动设置 `currentStep: "P1"` 后测试 Feature、缺失值及非法值的刷新恢复。 |
 
 ## 网页验收标准（AC01–AC15）
 
@@ -124,7 +126,7 @@
 **When**：与实施后状态比较。  
 **Then**：本轮新增内容只在 `PRJ_00_AgentPrompt/app/`。若基线本来有其他改动，必须区分基线和本轮变更，不覆盖它们。
 
-## 本地记录验收标准（AC16–AC25）
+## 本地记录验收标准（AC16–AC26）
 
 ### AC16：目录完整与编码
 
@@ -198,6 +200,20 @@
 **Given**：V1.4.1 实现。  
 **When**：在 Edge 和 Chrome 运行 `selftest.html`。  
 **Then**：原有 31 条断言及新增断言全部 PASS；AC02 按 Handoff 修订，AC01、AC03–AC20 定义保持不变。
+
+### AC26：P1 任务类型恢复一致（V1.4.4 拆分）
+
+#### AC26a：回填映射逻辑（selftest）
+
+**Given**：`PromptApp.getP1FieldValues`。  
+**When**：分别传入 `{ taskType: "Feature", requirement: "r", expected: "e", constraints: "c" }` 和 `{ taskType: "Bug", ... }`。  
+**Then**：返回对象键为 `task-type`、`requirement`、`expected`、`constraints`，其中 `task-type` 等于传入的 `taskType`，且不含 `taskType` 键；对相同输入 `buildPrompt("P1", …)` 中的 `任务类型：` 与 `task-type` 值相同。原有 50 条断言不变且全部 PASS。
+
+#### AC26b：页面恢复（Edge、Chrome 手动）
+
+**Given**：localStorage `duo-prompt-builder-v1` 对象中 `currentStep` 为 `"P1"`，且 `forms.P1.taskType` 分别为 `Feature`、不存在、非法值（如 `""` 或 `Other`）。（V1.4.5：`currentStep` 必须为 P1，因页面会恢复上次步骤。）  
+**When**：刷新 `app/index.html`，不操作任务类型控件和步骤选择。  
+**Then**：`Feature` → 下拉框与预览均为 `Feature`；不存在或非法 → 两者均为 `Bug`。之后切换 `Bug`/`Feature`，两者仍同步，刷新后保留。
 
 ## 手动验收记录模板
 
